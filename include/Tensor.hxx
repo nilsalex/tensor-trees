@@ -20,6 +20,8 @@ class Tensor : public Node {
 
   Forest<Node> splitUnsortedTrees (std::unique_ptr<Tree<Node>> const & t) const override;
 
+  std::set<size_t> getVariableSet (Forest<Node> const & forest) const override;
+
   int sortIndices ();
 
   virtual mpq_class evaluate(std::map <char, size_t> const & eval_map) const = 0;

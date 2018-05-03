@@ -24,11 +24,15 @@ class Scalar : public Node {
 
   Forest<Node> splitUnsortedTrees (std::unique_ptr<Tree<Node>> const & t) const override;
 
+  std::set<size_t> getVariableSet (Forest<Node> const &) const override;
+
   std::unique_ptr<Node> addOther(Scalar const * other);
 
   bool lessThan (Node const * other) const override;
   bool equals (Node const * other) const override;
   bool isZero () const;
+
+  static std::set<std::vector<mpq_class>> getCoefficientMatrix (Forest<Node> const & forest, std::map<size_t, size_t> const & variable_map);
 
 
   ~Scalar() = default;

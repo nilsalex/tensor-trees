@@ -1,6 +1,7 @@
 #pragma once
 #include <gmpxx.h>
 #include <map>
+#include <set>
 
 #include "Tree.hxx"
 
@@ -16,6 +17,7 @@ class Node {
   virtual Forest<Node> splitUnsortedTrees (std::unique_ptr<Tree<Node>> const & t) const = 0;
   virtual bool isLeastNode (Forest<Node> const & forest) const;
   virtual int order () const = 0;
+  virtual std::set<size_t> getVariableSet (Forest<Node> const & forest) const = 0;
 
   virtual std::unique_ptr<Node> clone () const = 0;
 

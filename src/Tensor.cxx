@@ -70,3 +70,7 @@ Forest<Node> Tensor::splitUnsortedTrees (std::unique_ptr<Tree<Node>> const & tre
 
   return ret;
 }
+
+std::set<size_t> Tensor::getVariableSet (Forest<Node> const & forest) const {
+  return ::getVariableSet (forest);
+}

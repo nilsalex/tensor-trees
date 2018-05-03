@@ -237,3 +237,54 @@ void removeEmptyBranches (Forest<Node> & forest) {
       return ((t->node->order() == 100 && static_cast<Scalar *>(t->node.get())->isZero()) || (t->forest.size() == 0 && t->node->order() != 100));
     }), forest.end());
 }
+
+std::set<size_t> getVariableSet(Forest<Node> const & forest) {
+  std::set<size_t> ret;
+  std::for_each(forest.cbegin(), forest.cend(),
+    [&ret] (auto const & t) {
+      auto tmp_map = t->node->getVariableSet(t->forest);
+      ret.merge(tmp_map);
+    });
+  return ret;
+}
+
+std::map<size_t, size_t> getVariableMap(Forest<Node> const & forest) {
+  auto variables = getVariableSet(forest);
+  std::map<size_t, size_t> ret;
+  std::for_each(variables.cbegin(), variables.cend(),
+    [&ret,n=0] (auto const & v) mutable {
+      ret[v] = n++;
+    });
+  return ret;
+}
+
+std::set<std::vector<mpq_class>> getCoefficientMatrix (Forest<Node> const & forest, std::map<size_t, size_t> const & variable_map) {
+  std::set<std::vector<mpq_class>> ret;
+
+  std::for_each(forest.cbegin(), forest.cend(),
+    [&ret,&variable_map] (auto const & t) {
+      std::set<std::vector<mpq_class>> tmp_mat;
+      if (hasOnlyScalarNodes(t->forest)) {
+        tmp_mat = Scalar::getCoefficientMatrix (t->forest, variable_map);
+      } else {
+        tmp_mat = getCoefficientMatrix (t->forest, variable_map);
+      }
+      ret.merge(tmp_mat);
+    });
+  return ret;
+}
+
+bool hasOnlyScalarNodes (Forest<Node> const & forest) {
+  if (forest.empty()) {
+    return false;
+  }
+  bool ret = true;
+  for (auto const & tree : forest) {
+    if (tree->node->order() != 100) {
+      ret = false;
+      break;
+    }
+  }
+
+  return ret;
+}

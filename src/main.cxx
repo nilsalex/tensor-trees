@@ -8,7 +8,8 @@
 #include "Builder.hxx"
 
 int main () {
-  std::string indices {"abcdefghpq"};
+//  std::string indices {"abcdefghpq"};
+  std::string indices {"abcd"};
 
   auto forest = std::make_unique<Forest<Node>>();
   {
@@ -33,12 +34,16 @@ int main () {
 
   symmetrizeForest(*forest, {{'a', 'b'}, {'b', 'a'}}, -1);
   symmetrizeForest(*forest, {{'c', 'd'}, {'d', 'c'}}, -1);
+/*
   symmetrizeForest(*forest, {{'e', 'f'}, {'f', 'e'}}, -1);
   symmetrizeForest(*forest, {{'g', 'h'}, {'h', 'g'}}, -1);
+*/
   symmetrizeForest(*forest, {{'a', 'c'}, {'b', 'd'}, {'c', 'a'}, {'d', 'b'}}, 1);
+/*
   symmetrizeForest(*forest, {{'e', 'g'}, {'f', 'h'}, {'g', 'e'}, {'h', 'f'}}, 1);
   symmetrizeForest(*forest, {{'a', 'e'}, {'b', 'f'}, {'c', 'g'}, {'d', 'h'}, {'e', 'a'}, {'f', 'b'}, {'g', 'c'}, {'h', 'd'}}, 1);
   symmetrizeForest(*forest, {{'p', 'q'}, {'q', 'p'}}, 1);
+*/
   applyTensorSymmetries(*forest);
 
   int iterations = 0;
@@ -53,6 +58,18 @@ int main () {
   shrinkForest(*forest);
   removeEmptyBranches(*forest);
   std::cout << printForest(*forest);
+
+  auto map = getVariableMap(*forest);
+  auto mat = getCoefficientMatrix(*forest, map);
+
+  std::for_each (mat.cbegin(), mat.cend(),
+    [] (auto const & v) {
+      std::for_each(v.cbegin(), v.cend(),
+        [] (auto const & q) {
+          std::cout << q << "\t";
+        });
+      std::cout << std::endl;
+    });
 
   return 0;
 }

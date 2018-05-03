@@ -1,4 +1,6 @@
 #pragma once
+#include <map>
+#include <set>
 #include <gmpxx.h>
 
 #include "Tree.hxx"
@@ -31,3 +33,11 @@ void shrinkForest (Forest<Node> & forest);
 bool isForestSorted (Forest<Node> const & forest);
 
 void removeEmptyBranches (Forest<Node> & forest);
+
+std::set<size_t> getVariableSet(Forest<Node> const & forest);
+
+std::map<size_t, size_t> getVariableMap(Forest<Node> const & forest);
+
+std::set<std::vector<mpq_class>> getCoefficientMatrix (Forest<Node> const & forest, std::map<size_t, size_t> const & variable_map);
+
+bool hasOnlyScalarNodes (Forest<Node> const & forest);

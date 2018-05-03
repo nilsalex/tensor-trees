@@ -1,4 +1,6 @@
+#include <iostream>
 #include <sstream>
+
 #include "Algorithms.hxx"
 
 #include "Scalar.hxx"
@@ -65,3 +67,17 @@ std::unique_ptr<Node> Scalar::addOther(Scalar const * other) {
   return std::make_unique<Scalar> (variable, fraction + other->fraction);
 }
 
+std::set<size_t> Scalar::getVariableSet (Forest<Node> const &) const {
+  return {variable};
+}
+
+std::set<std::vector<mpq_class>> Scalar::getCoefficientMatrix (Forest<Node> const & forest, std::map<size_t, size_t> const & variable_map) {
+  std::vector<mpq_class> ret (variable_map.size(), 0);
+  std::for_each(forest.cbegin(), forest.cend(),
+    [&ret,&variable_map] (auto const & t) {
+      auto node = static_cast<Scalar const *>(t->node.get());
+      size_t var_number = variable_map.at(node->variable);
+      ret[var_number] += node->fraction;
+    });
+  return {ret};
+}
