@@ -81,3 +81,19 @@ std::set<std::vector<mpq_class>> Scalar::getCoefficientMatrix (Forest<Node> cons
     });
   return {ret};
 }
+
+void Scalar::setVariablesToZero (Forest<Node> & forest, std::set<size_t> const & variables) {
+  if (variables.count(variable) == 1) {
+    fraction = 0;
+  }
+  ::setVariablesToZero (forest, variables);
+}
+
+void Scalar::substituteVariables (Forest<Node> & forest, std::map<size_t, size_t> const & map) {
+  auto const it = map.find(variable);
+
+  if (it != map.cend()) {
+    variable = it->second;
+  }
+  ::substituteVariables (forest, map);
+}

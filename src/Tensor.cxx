@@ -74,3 +74,11 @@ Forest<Node> Tensor::splitUnsortedTrees (std::unique_ptr<Tree<Node>> const & tre
 std::set<size_t> Tensor::getVariableSet (Forest<Node> const & forest) const {
   return ::getVariableSet (forest);
 }
+
+void Tensor::setVariablesToZero (Forest<Node> & forest, std::set<size_t> const & variables) {
+  ::setVariablesToZero (forest, variables);
+}
+
+void Tensor::substituteVariables (Forest<Node> & forest, std::map<size_t, size_t> const & map) {
+  ::substituteVariables (forest, map);
+}

@@ -27,6 +27,8 @@ class Tensor : public Node {
   virtual mpq_class evaluate(std::map <char, size_t> const & eval_map) const = 0;
   virtual mpq_class symmetrize() = 0;
   void multiplyForest (Forest<Node> & forest, mpq_class factor) override;
+  void setVariablesToZero (Forest<Node> & forest, std::set<size_t> const & variables) override;
+  void substituteVariables (Forest<Node> & forest, std::map<size_t, size_t> const & map) override;
 
   ~Tensor() = default;
 };

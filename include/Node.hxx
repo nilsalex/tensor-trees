@@ -18,6 +18,8 @@ class Node {
   virtual bool isLeastNode (Forest<Node> const & forest) const;
   virtual int order () const = 0;
   virtual std::set<size_t> getVariableSet (Forest<Node> const & forest) const = 0;
+  virtual void setVariablesToZero (Forest<Node> & forest, std::set<size_t> const & variables) = 0;
+  virtual void substituteVariables (Forest<Node> & forest, std::map<size_t, size_t> const & map) = 0;
 
   virtual std::unique_ptr<Node> clone () const = 0;
 

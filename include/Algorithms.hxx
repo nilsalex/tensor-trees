@@ -41,3 +41,7 @@ std::map<size_t, size_t> getVariableMap(Forest<Node> const & forest);
 std::set<std::vector<mpq_class>> getCoefficientMatrix (Forest<Node> const & forest, std::map<size_t, size_t> const & variable_map);
 
 bool hasOnlyScalarNodes (Forest<Node> const & forest);
+
+void setVariablesToZero (Forest<Node> & forest, std::set<size_t> const & variables);
+
+void substituteVariables (Forest<Node> & forest, std::map<size_t, size_t> const & variables);

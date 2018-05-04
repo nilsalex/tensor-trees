@@ -32,6 +32,9 @@ class Scalar : public Node {
   bool equals (Node const * other) const override;
   bool isZero () const;
 
+  void setVariablesToZero (Forest<Node> & forest, std::set<size_t> const & variables) override;
+  void substituteVariables (Forest<Node> & forest, std::map<size_t, size_t> const & map) override;
+
   static std::set<std::vector<mpq_class>> getCoefficientMatrix (Forest<Node> const & forest, std::map<size_t, size_t> const & variable_map);
 
 

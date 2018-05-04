@@ -288,3 +288,17 @@ bool hasOnlyScalarNodes (Forest<Node> const & forest) {
 
   return ret;
 }
+
+void setVariablesToZero (Forest<Node> & forest, std::set<size_t> const & variables) {
+  std::for_each(forest.cbegin(), forest.cend(),
+    [&variables] (auto & t) {
+      t->node->setVariablesToZero (t->forest, variables);
+    });
+}
+
+void substituteVariables (Forest<Node> & forest, std::map<size_t, size_t> const & map) {
+  std::for_each(forest.cbegin(), forest.cend(),
+    [&map] (auto & t) {
+      t->node->substituteVariables (t->forest, map);
+    });
+}
