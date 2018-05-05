@@ -2,6 +2,7 @@
 #include <sstream>
 
 #include "Scalar.hxx"
+#include "LinearAlgebra.hxx"
 #include "Algorithms.hxx"
 
 std::string printForest (Forest<Node> const & f, size_t depth) {
@@ -132,6 +133,15 @@ Forest<Node> splitUnsortedTrees (Forest<Node> const & forest) {
   return ret;
 }
 
+void splitUnsortedTreesRepeat (std::unique_ptr<Forest<Node>> & forest) {
+  while (!isForestSorted(*forest)) {
+    auto new_forest = std::make_unique<Forest<Node>>(splitUnsortedTrees(*forest));
+    std::swap(forest, new_forest);
+    shrinkForest(*forest);
+  }
+}
+
+
 void sortForest (Forest<Node> & forest) {
   std::for_each(forest.begin(), forest.end(),
     [] (auto & t) {
@@ -144,7 +154,7 @@ void sortForest (Forest<Node> & forest) {
     });
 }
 
-void sortForestNoRepeat (Forest<Node> & forest) {
+void sortForestNoRecurse (Forest<Node> & forest) {
   std::sort(forest.begin(), forest.end(),
     [] (auto & a, auto & b) {
       return (*(a->node) < b->node.get());
@@ -156,7 +166,7 @@ void mergeForest (Forest<Node> & forest) {
     return;
   }
 
-  sortForestNoRepeat(forest);
+  sortForestNoRecurse(forest);
 
   Forest<Node> ret;
   
@@ -301,4 +311,37 @@ void substituteVariables (Forest<Node> & forest, std::map<size_t, size_t> const 
     [&map] (auto & t) {
       t->node->substituteVariables (t->forest, map);
     });
+}
+
+void redefineVariables (Forest<Node> & forest) {
+  auto variable_map = getVariableMap(forest);
+
+  std::map<size_t, size_t> reverse_variable_map;
+  std::for_each(variable_map.cbegin(), variable_map.cend(),
+    [&reverse_variable_map] (auto const & p) {
+      reverse_variable_map[p.second] = p.first;
+    });
+
+  auto coeff_mat = getCoefficientMatrix(forest, variable_map);
+
+  auto _dependent_variables = findDependentVariables (coeff_mat);
+  std::set<size_t> dependent_variables;
+  std::for_each(_dependent_variables.cbegin(), _dependent_variables.cend(),
+    [&dependent_variables,&reverse_variable_map] (auto const & i) {
+      dependent_variables.insert(reverse_variable_map.at(i));
+    });
+
+  setVariablesToZero (forest, dependent_variables);
+  removeEmptyBranches(forest);
+  shrinkForest(forest);
+
+  std::map<size_t, size_t> substitution_map;
+  std::for_each(variable_map.cbegin(), variable_map.cend(),
+    [&substitution_map,&_dependent_variables,n=0] (auto const & p) mutable {
+      if (_dependent_variables.find(p.second) == _dependent_variables.end()) {
+        substitution_map[p.first] = ++n;
+      }
+    });
+
+  substituteVariables(forest, substitution_map);
 }

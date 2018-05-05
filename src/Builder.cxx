@@ -104,3 +104,26 @@ Forest<Node> EpsilonBuilder::buildForest (std::string const & indices) {
   return forest;
 }
 
+std::unique_ptr<Forest<Node>> buildEpsilonEtaForest (std::string const & indices) {
+  auto ret = std::make_unique<Forest<Node>>();
+
+  EtaBuilder etaBuilder;
+  auto etaForest = etaBuilder.buildForest(indices);
+
+  EpsilonBuilder epsilonBuilder(etaBuilder.get_leaf_counter());
+  auto epsilonForest = epsilonBuilder.buildForest(indices);
+
+  ret->reserve(etaForest.size() + epsilonForest.size());
+  std::for_each(etaForest.begin(), etaForest.end(),
+    [&ret] (auto & t) {
+      ret->push_back(std::make_unique<Tree<Node>>());
+      ret->back().swap(t);
+    });
+  std::for_each(epsilonForest.begin(), epsilonForest.end(),
+    [&ret] (auto & t) {
+      ret->push_back(std::make_unique<Tree<Node>>());
+      ret->back().swap(t);
+    });
+
+  return ret;
+}

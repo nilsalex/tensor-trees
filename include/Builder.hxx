@@ -1,3 +1,6 @@
+#pragma once
+#include <memory>
+
 #include "Tree.hxx"
 
 class EtaBuilder {
@@ -33,3 +36,5 @@ class EpsilonBuilder {
 
   ~EpsilonBuilder() = default;
 };
+
+std::unique_ptr<Forest<Node>> buildEpsilonEtaForest (std::string const & indices);

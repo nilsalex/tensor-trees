@@ -22,9 +22,11 @@ void symmetrizeForest (Forest<Node> & forest, std::map<char, char> const & excha
 
 Forest<Node> splitUnsortedTrees (Forest<Node> const & forest);
 
+void splitUnsortedTreesRepeat (std::unique_ptr<Forest<Node>> & forest);
+
 void sortForest (Forest<Node> & forest);
 
-void sortForestNoRepeat (Forest<Node> & forest);
+void sortForestNoRecurse (Forest<Node> & forest);
 
 void mergeForest (Forest<Node> & forest);
 
@@ -45,3 +47,5 @@ bool hasOnlyScalarNodes (Forest<Node> const & forest);
 void setVariablesToZero (Forest<Node> & forest, std::set<size_t> const & variables);
 
 void substituteVariables (Forest<Node> & forest, std::map<size_t, size_t> const & variables);
+
+void redefineVariables (Forest<Node> & forest);
