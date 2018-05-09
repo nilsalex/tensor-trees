@@ -8,6 +8,7 @@
 #include "Builder.hxx"
 
 int main () {
+#if 0
   std::string indices {"abcdefghijklpq"};
 
   std::map <char, size_t> eval_map {
@@ -96,6 +97,6 @@ int main () {
     [](auto const & p) {
       std::cout << "Variable " << p.first << ":\t" << p.second << std::endl;
     });
-
+#endif
   return 0;
 }

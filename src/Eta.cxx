@@ -33,9 +33,8 @@ mpq_class Eta::symmetrize() {
   return 1;
 }
 
-int Eta::applyTensorSymmetries (Forest<Node> & forest, int parity) {
+int Eta::applyTensorSymmetries (int parity) {
   sortIndices();
-  ::applyTensorSymmetries(forest, parity);
   return parity;
 }
 

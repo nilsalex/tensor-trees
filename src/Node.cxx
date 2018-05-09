@@ -31,3 +31,16 @@ bool Node::operator== (Node const * other) const {
 bool Node::operator> (Node const * other) const {
   return !(*this == other || *this < other);
 }
+
+bool Node::operator< (Node const & other) const {
+  return (*this) < (&other);
+}
+
+bool Node::operator> (Node const & other) const {
+  return (*this) > (&other);
+}
+
+bool Node::operator== (Node const & other) const {
+  return (*this) == (&other);
+}
+

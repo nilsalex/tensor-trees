@@ -5,95 +5,123 @@
 
 #include "Scalar.hxx"
 
-Scalar::Scalar (size_t variable, mpq_class fraction) : variable(variable), fraction(fraction) { }
+Scalar::Scalar (size_t variable, mpq_class fraction) : map(std::map<size_t, mpq_class>({{variable, fraction}})) { }
+
+Scalar::Scalar (Scalar const & other) : map(other.map) { }
 
 int Scalar::order () const { return 100; }
 
-bool Scalar::isZero () const { return (fraction == 0); }
+bool Scalar::isZero () const {
+  return std::all_of(map.cbegin(), map.cend(),
+    [] (auto const & p) {
+      return (p.second == 0);
+    });
+}
 
-int Scalar::get_variable() const { return variable; }
+std::map<size_t, mpq_class> Scalar::get() const { return map; }
 
 std::string Scalar::print () const {
   std::stringstream ss;
-  ss << "Fraction " << fraction.get_num() << " " << fraction.get_den() << " Scalar " << variable;
+  
+  std::for_each(map.cbegin(), map.cend(),
+    [&ss] (auto const & p) {
+      ss << "Fraction " << p.second.get_num() << " " << p.second.get_den() << " Scalar " << p.first << " ";
+    });
 
   return ss.str();
 }
 
-void Scalar::multiplyForest (Forest<Node> &, mpq_class factor) {
-  fraction *= factor;
+void Scalar::multiply (mpq_class const & factor) {
+  std::for_each(map.begin(), map.end(), [&factor] (auto & p) { p.second *= factor; });
 }
 
 std::unique_ptr<Node> Scalar::clone () const {
-  return std::unique_ptr<Node>(new Scalar(*this));
+  return std::make_unique<Scalar>(*this);
 }
 
 std::map<size_t, mpq_class> Scalar::evaluateTree (Tree<Node> const &, std::map<char, size_t> const &, mpq_class prefactor) const {
-  return std::map<size_t, mpq_class> {{variable, fraction * prefactor}};
-}
-
-int Scalar::applyTensorSymmetries (Forest<Node> &, int parity) {
-  fraction *= parity;
-  return parity;
-}
-
-void Scalar::exchangeTensorIndices (Forest<Node> & forest, std::map<char, char> const & exchange_map) {
-  ::exchangeTensorIndices (forest, exchange_map);
-}
-
-Forest<Node> Scalar::splitUnsortedTrees (std::unique_ptr<Tree<Node>> const & tree) const {
-  Forest<Node> ret (1);
-  ret[0] = std::make_unique<Tree<Node>>();
-  ret[0]->node = tree->node->clone();
-  ret[0]->forest = copyForest(tree->forest);
+  std::map<size_t, mpq_class> ret;
+  std::for_each(map.cbegin(), map.cend(),
+    [&ret,&prefactor] (auto const & p) {
+      ret.insert({p.first, p.second * prefactor});
+    });
   return ret;
 }
 
+int Scalar::applyTensorSymmetries (int parity) {
+  std::for_each(map.begin(), map.end(),
+    [&parity] (auto & p) {
+      p.second *= parity;
+    });
+  return parity;
+}
+
+void Scalar::exchangeTensorIndices (std::map<char, char> const &) {
+}
+
 bool Scalar::lessThan (Node const * other) const {
-  if (variable < static_cast<Scalar const *>(other)->variable) {
-    return true;
-  } else if (variable > static_cast<Scalar const *>(other)->variable) {
-    return false;
-  } else {
-    return (fraction < static_cast<Scalar const *>(other)->fraction);
-  }
+  Scalar const & otherScalar = *(static_cast<Scalar const *>(other));
+
+  return std::lexicographical_compare (map.cbegin(), map.cend(), otherScalar.map.cbegin(), otherScalar.map.cend());
 }
 
 bool Scalar::equals (Node const * other) const {
-  return (variable == static_cast<Scalar const *>(other)->variable && fraction == static_cast<Scalar const *>(other)->fraction);
+  Scalar const & otherScalar = *(static_cast<Scalar const *>(other));
+
+  return std::equal(map.cbegin(), map.cend(), otherScalar.map.cbegin(), otherScalar.map.cend());
 }
 
-std::unique_ptr<Node> Scalar::addOther(Scalar const * other) {
-  return std::make_unique<Scalar> (variable, fraction + other->fraction);
+void Scalar::addOther(Scalar const * other) {
+  std::for_each(other->map.cbegin(), other->map.cend(),
+    [this] (auto const & p) {
+      auto it = this->map.find(p.first);
+      if (it == map.end()) {
+        this->map.insert(p);
+      } else {
+        it->second += p.second;
+      }
+    });
 }
 
 std::set<size_t> Scalar::getVariableSet (Forest<Node> const &) const {
-  return {variable};
+  std::set<size_t> ret;
+  std::for_each(map.cbegin(), map.cend(),
+    [&ret] (auto const & p) {
+      ret.insert(p.first);
+    });
+
+  return ret;
 }
 
-std::set<std::vector<mpq_class>> Scalar::getCoefficientMatrix (Forest<Node> const & forest, std::map<size_t, size_t> const & variable_map) {
+std::set<std::vector<mpq_class>> Scalar::getCoefficientMatrix (Forest<Node> const &, std::map<size_t, size_t> const & variable_map) {
   std::vector<mpq_class> ret (variable_map.size(), 0);
-  std::for_each(forest.cbegin(), forest.cend(),
-    [&ret,&variable_map] (auto const & t) {
-      auto node = static_cast<Scalar const *>(t->node.get());
-      size_t var_number = variable_map.at(node->variable);
-      ret[var_number] += node->fraction;
+  std::for_each(map.cbegin(), map.cend(),
+    [&ret,&variable_map] (auto const & p) {
+      size_t var_number = variable_map.at(p.first);
+      ret[var_number] += p.second;
     });
   return {ret};
 }
 
-void Scalar::setVariablesToZero (Forest<Node> & forest, std::set<size_t> const & variables) {
-  if (variables.count(variable) == 1) {
-    fraction = 0;
-  }
-  ::setVariablesToZero (forest, variables);
+void Scalar::setVariablesToZero (Forest<Node> &, std::set<size_t> const & variables) {
+  std::for_each(variables.cbegin(), variables.cend(),
+    [this] (auto const & v) {
+      this->map.erase(v);
+    });
 }
 
-void Scalar::substituteVariables (Forest<Node> & forest, std::map<size_t, size_t> const & map) {
-  auto const it = map.find(variable);
+void Scalar::substituteVariables (Forest<Node> &, std::map<size_t, size_t> const & subs_map) {
+  Scalar new_scalar;
 
-  if (it != map.cend()) {
-    variable = it->second;
-  }
-  ::substituteVariables (forest, map);
+  std::for_each(map.begin(), map.end(),
+    [&subs_map,&new_scalar] (auto & p) {
+      if (subs_map.count(p.first) == 1) {
+        auto const new_var = subs_map.at(p.first);
+        new_scalar.map[new_var] = std::move(p.second);
+      } else {
+        new_scalar.map.insert(std::move(p));
+      }
+    });
+
+  std::swap(this->map, new_scalar.map);
 }

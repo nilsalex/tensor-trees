@@ -35,14 +35,9 @@ mpq_class Epsilon::symmetrize() {
   return sortIndices();
 }
 
-int Epsilon::applyTensorSymmetries (Forest<Node> & forest, int parity) {
-  parity *= sortIndices();
-  if (parity == 0) {
-    return 0;
-  } else {
-    ::applyTensorSymmetries(forest, parity);
-    return parity;
-  }
+int Epsilon::applyTensorSymmetries (int parity) {
+  int epsilon_parity = sortIndices();
+  return (parity * epsilon_parity);
 }
 
 bool Epsilon::lessThan(Node const * other) const {
