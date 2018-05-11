@@ -7,6 +7,40 @@
 #include "LinearAlgebra.hxx"
 #include "Algorithms.hxx"
 
+bool vec_compare :: operator () (coefficient_vector const & v1, coefficient_vector const & v2) {
+  auto first_nonzero_it_1 = std::find_if (v1.cbegin(), v1.cend(), [] (auto const & p) { return p.second != 0; });
+  auto first_nonzero_it_2 = std::find_if (v2.cbegin(), v2.cend(), [] (auto const & p) { return p.second != 0; });
+
+  if (first_nonzero_it_1 == v1.cend()) {
+    if (first_nonzero_it_2 == v2.cend()) {
+      return false;
+    } else {
+      return true;
+    }
+  } else {
+    if (first_nonzero_it_2 == v2.cend()) {
+      return false;
+    } else {
+      // both are non-zero
+      // compare first non-zero variables
+      size_t const & var_1 = first_nonzero_it_1->first;
+      size_t const & var_2 = first_nonzero_it_2->first;
+      mpq_class const & frac_1 = first_nonzero_it_1->second;
+      mpq_class const & frac_2 = first_nonzero_it_2->second;
+
+      if (var_1 < var_2) {
+        return true;
+      } else if (var_1 > var_2) {
+        return false;
+      } else {
+        // both are non-zero starting at the same variable
+        // compare fractions
+        return false;
+      }
+    }
+  }
+}
+
 std::string printTree (std::unique_ptr<Tree<Node>> const & tree) {
   if (tree->isEmpty()) {
     return printForest (tree->forest, 0);
@@ -85,6 +119,28 @@ void symmetrizeTree (std::unique_ptr<Tree<Node>> & tree, std::map<char, char> co
 
   sortTreeAndMerge (tree, new_tree);
   removeEmptyBranches(tree);
+}
+
+void redefineScalarsSym (std::unique_ptr<Tree<Node>> & tree) {
+  auto leaf_it = tree->firstLeaf();
+  std::map<size_t, std::pair<size_t, mpq_class>> substitution_map;
+  size_t var_counter = 0;
+  
+  while (leaf_it != nullptr) {
+    Scalar * scalar = static_cast<Scalar *>(leaf_it->node.get());
+    auto first = scalar->getCoefficientMap().begin();
+    auto it = substitution_map.find(first->first);
+    if (it == substitution_map.end()) {
+      std::unique_ptr<Node> new_scalar = std::make_unique<Scalar>(++var_counter, first->second);
+      std::swap(new_scalar, leaf_it->node);
+      substitution_map[first->first] = std::make_pair(var_counter, first->second);
+    } else {
+      std::unique_ptr<Node> new_scalar = std::make_unique<Scalar>(it->second.first, it->second.second);
+      std::swap(new_scalar, leaf_it->node);
+    }
+
+    leaf_it = leaf_it->nextLeaf();
+  }
 }
 
 void sortBranch (std::vector<Node *> & branch) {
@@ -222,26 +278,8 @@ void applyTensorSymmetries(std::unique_ptr<Tree<Node>> & tree, int parity) {
     }), tree->forest.end());
 }
 
-void shrinkForest (Forest<Node> & forest) {
-  forest.shrink_to_fit();
-  std::for_each(forest.begin(), forest.end(),
-    [] (auto & t) {
-      t->forest.shrink_to_fit();
-    });
-}
-
-std::set<size_t> getVariableSet(Forest<Node> const & forest) {
-  std::set<size_t> ret;
-  std::for_each(forest.cbegin(), forest.cend(),
-    [&ret] (auto const & t) {
-      auto tmp_map = t->node->getVariableSet(t->forest);
-      ret.merge(tmp_map);
-    });
-  return ret;
-}
-
-std::map<size_t, size_t> getVariableMap(Forest<Node> const & forest) {
-  auto variables = getVariableSet(forest);
+std::map<size_t, size_t> getVariableMap (std::unique_ptr<Tree<Node>> const & tree) {
+  auto variables = getVariableSet(tree);
   std::map<size_t, size_t> ret;
   std::for_each(variables.cbegin(), variables.cend(),
     [&ret,n=0] (auto const & v) mutable {
@@ -250,15 +288,48 @@ std::map<size_t, size_t> getVariableMap(Forest<Node> const & forest) {
   return ret;
 }
 
-std::set<std::vector<mpq_class>> getCoefficientMatrix (Forest<Node> const & forest, std::map<size_t, size_t> const & variable_map) {
-  std::set<std::vector<mpq_class>> ret;
+std::set<size_t> getVariableSet (std::unique_ptr<Tree<Node>> const & tree) {
+  std::set<size_t> ret;
 
-  std::for_each(forest.cbegin(), forest.cend(),
-    [&ret,&variable_map] (auto const & t) {
-      auto tmp_mat = getCoefficientMatrix (t->forest, variable_map);
-      ret.merge(tmp_mat);
-    });
+  auto leaf_it = tree->firstLeaf();
+
+  while (leaf_it != nullptr) {
+    ret.merge (leaf_it->node->getVariableSet());
+    leaf_it = leaf_it->nextLeaf();
+  }
+
   return ret;
+}
+
+coefficient_matrix getCoefficientMatrix (std::unique_ptr<Tree<Node>> const & tree) {
+  coefficient_matrix ret;
+
+  auto leaf_it = tree->firstLeaf();
+
+  while (leaf_it != nullptr) {
+    auto tmp_vec = leaf_it->node->getCoefficientMap();
+    ret.insert (std::move(tmp_vec));
+
+    leaf_it = leaf_it->nextLeaf();
+  }
+
+  return ret;
+}
+
+void shrinkForest (Forest<Node> & forest) {
+  forest.shrink_to_fit();
+  std::for_each(forest.begin(), forest.end(),
+    [] (auto & t) {
+      t->forest.shrink_to_fit();
+    });
+}
+
+std::string printCoefficientMatrix(coefficient_matrix const & mat) {
+  std::stringstream ss;
+  
+  ss << "Matrix([";
+
+  return ss.str();
 }
 
 void setVariablesToZero (Forest<Node> & forest, std::set<size_t> const & variables) {
@@ -268,11 +339,13 @@ void setVariablesToZero (Forest<Node> & forest, std::set<size_t> const & variabl
     });
 }
 
-void substituteVariables (Forest<Node> & forest, std::map<size_t, size_t> const & map) {
-  std::for_each(forest.cbegin(), forest.cend(),
-    [&map] (auto & t) {
-      t->node->substituteVariables (t->forest, map);
-    });
+void substituteVariables (std::unique_ptr<Tree<Node>> & tree, std::map<size_t, size_t> const & subs_map) {
+  auto leaf_it = tree->firstLeaf();
+
+  while (leaf_it != nullptr) {
+    leaf_it->node->substituteVariables (subs_map);
+    leaf_it = leaf_it->nextLeaf();
+  }
 }
 /*
 void redefineVariables (Forest<Node> & forest) {

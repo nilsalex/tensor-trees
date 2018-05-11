@@ -18,7 +18,8 @@ class Tensor : public Node {
 
   void exchangeTensorIndices (std::map<char, char> const & exchange_map);
 
-  std::set<size_t> getVariableSet (Forest<Node> const & forest) const override;
+  std::set<size_t> getVariableSet () const override;
+  std::map<size_t, mpq_class> const & getCoefficientMap () const override;
 
   int sortIndices ();
 
@@ -26,7 +27,7 @@ class Tensor : public Node {
   virtual mpq_class symmetrize() = 0;
   void multiply (mpq_class const & factor) override;
   void setVariablesToZero (Forest<Node> & forest, std::set<size_t> const & variables) override;
-  void substituteVariables (Forest<Node> & forest, std::map<size_t, size_t> const & map) override;
+  void substituteVariables (std::map<size_t, size_t> const & subs_map) override;
 
   ~Tensor() = default;
 };

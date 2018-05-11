@@ -8,7 +8,7 @@ class Scalar : public Node {
  public:
   Scalar () = default;
 
-  Scalar (size_t variable, mpq_class fraction);
+  Scalar (size_t variable, mpq_class const & fraction);
 
   Scalar (Scalar const & other);
 
@@ -25,7 +25,8 @@ class Scalar : public Node {
 
   std::map<size_t, mpq_class> evaluateTree (Tree<Node> const & tree, std::map<char, size_t> const & eval_map, mpq_class prefactor) const; 
 
-  std::set<size_t> getVariableSet (Forest<Node> const &) const override;
+  std::set<size_t> getVariableSet () const override;
+  std::map<size_t, mpq_class> const & getCoefficientMap () const override;
 
   void addOther(Scalar const * other);
 
@@ -34,10 +35,7 @@ class Scalar : public Node {
   bool isZero () const;
 
   void setVariablesToZero (Forest<Node> & forest, std::set<size_t> const & variables) override;
-  void substituteVariables (Forest<Node> & forest, std::map<size_t, size_t> const & map) override;
-
-  std::set<std::vector<mpq_class>> getCoefficientMatrix (Forest<Node> const & forest, std::map<size_t, size_t> const & variable_map);
-
+  void substituteVariables (std::map<size_t, size_t> const & subs_map) override;
 
   ~Scalar() = default;
 };

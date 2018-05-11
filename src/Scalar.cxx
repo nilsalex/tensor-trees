@@ -5,7 +5,7 @@
 
 #include "Scalar.hxx"
 
-Scalar::Scalar (size_t variable, mpq_class fraction) : map(std::map<size_t, mpq_class>({{variable, fraction}})) { }
+Scalar::Scalar (size_t variable, mpq_class const & fraction) : map(std::map<size_t, mpq_class>({{variable, fraction}})) { }
 
 Scalar::Scalar (Scalar const & other) : map(other.map) { }
 
@@ -25,7 +25,7 @@ std::string Scalar::print () const {
   
   std::for_each(map.cbegin(), map.cend(),
     [&ss] (auto const & p) {
-      ss << "Fraction " << p.second.get_num() << " " << p.second.get_den() << " Scalar " << p.first << " ";
+      ss << "Fraction " << p.second.get_num() << " " << p.second.get_den() << " Variable " << p.first << " ";
     });
 
   return ss.str();
@@ -83,24 +83,17 @@ void Scalar::addOther(Scalar const * other) {
     });
 }
 
-std::set<size_t> Scalar::getVariableSet (Forest<Node> const &) const {
+std::set<size_t> Scalar::getVariableSet () const {
   std::set<size_t> ret;
   std::for_each(map.cbegin(), map.cend(),
     [&ret] (auto const & p) {
       ret.insert(p.first);
     });
-
   return ret;
 }
 
-std::set<std::vector<mpq_class>> Scalar::getCoefficientMatrix (Forest<Node> const &, std::map<size_t, size_t> const & variable_map) {
-  std::vector<mpq_class> ret (variable_map.size(), 0);
-  std::for_each(map.cbegin(), map.cend(),
-    [&ret,&variable_map] (auto const & p) {
-      size_t var_number = variable_map.at(p.first);
-      ret[var_number] += p.second;
-    });
-  return {ret};
+std::map<size_t, mpq_class> const & Scalar::getCoefficientMap () const {
+  return map;
 }
 
 void Scalar::setVariablesToZero (Forest<Node> &, std::set<size_t> const & variables) {
@@ -110,7 +103,7 @@ void Scalar::setVariablesToZero (Forest<Node> &, std::set<size_t> const & variab
     });
 }
 
-void Scalar::substituteVariables (Forest<Node> &, std::map<size_t, size_t> const & subs_map) {
+void Scalar::substituteVariables (std::map<size_t, size_t> const & subs_map) {
   Scalar new_scalar;
 
   std::for_each(map.begin(), map.end(),
