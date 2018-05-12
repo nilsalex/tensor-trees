@@ -4,22 +4,72 @@
 #include "Epsilon.hxx"
 #include "eval.hxx"
 
-Epsilon::Epsilon(char const i1, char const i2, char const i3, char const i4) : Tensor(4, std::string({i1, i2, i3, i4})) {}
+Epsilon::Epsilon(char const i1, char const i2, char const i3, char const i4) : i1(i1), i2(i2), i3(i3), i4(i4) {}
 
-int Epsilon::order () const { return 0; }
+void Epsilon::exchangeTensorIndices (std::map<char, char> const & exchange_map) {
+  auto it = exchange_map.find(i1);
+  if (it != exchange_map.end()) {
+    i1 = it->second;
+  }
+  it = exchange_map.find(i2);
+  if (it != exchange_map.end()) {
+    i2 = it->second;
+  }
+  it = exchange_map.find(i3);
+  if (it != exchange_map.end()) {
+    i3 = it->second;
+  }
+  it = exchange_map.find(i4);
+  if (it != exchange_map.end()) {
+    i4 = it->second;
+  }
+}
+
+int Epsilon::sortIndices() {
+  int ret = 1;
+  bool swapped = true;
+  do {
+    swapped = false;
+    if (i1 == i2) {
+      ret = 0;
+    } else if (i1 > i2) {
+      std::swap (i1, i2);
+      swapped = true;
+      ret *= -1;
+    }
+    if (i2 == i3) {
+      ret = 0;
+    } else if (i2 > i3) {
+      std::swap (i2, i3);
+      swapped = true;
+      ret *= -1;
+    }
+    if (i3 == i4) {
+      ret = 0;
+    } else if (i3 > i4) {
+      std::swap (i3, i4);
+      swapped = true;
+      ret *= -1;
+    }
+  } while (swapped);
+
+  return ret;
+}
+
+char Epsilon::order () const { return 0; }
 
 std::string Epsilon::print () const {
   std::stringstream ss;
-  ss << "Epsilon {" << get_indices() << "}";
+  ss << "Epsilon {" << i1 << i2 << i3 << i4 << "}";
 
   return ss.str();
 }
 
 mpq_class Epsilon::evaluate(std::map <char, size_t> const & eval_map) const {
-  return epsilon_eval.at(64 * eval_map.at(get_indices()[0])
-                       + 16 * eval_map.at(get_indices()[1])
-                       +  4 * eval_map.at(get_indices()[2])
-                       +      eval_map.at(get_indices()[3]));
+  return epsilon_eval.at(64 * eval_map.at(i1)
+                       + 16 * eval_map.at(i2)
+                       +  4 * eval_map.at(i3)
+                       +      eval_map.at(i4));
 }
 
 std::map<size_t, mpq_class> Epsilon::evaluateTree (Tree<Node> const & tree, std::map<char, size_t> const & eval_map, mpq_class prefactor) const {
@@ -41,11 +91,29 @@ int Epsilon::applyTensorSymmetries (int parity) {
 }
 
 bool Epsilon::lessThan(Node const * other) const {
-  return (get_indices() < static_cast<Epsilon const *>(other)->get_indices());
+  auto other_eps = static_cast<Epsilon const *>(other);
+  if (i1 < other_eps->i1) {
+    return true;
+  } else if (i1 > other_eps->i1) {
+    return false;
+  } else if (i2 < other_eps->i2) {
+    return true;
+  } else if (i2 > other_eps->i2) {
+    return false;
+  } else if (i3 < other_eps->i3) {
+    return true;
+  } else if (i3 > other_eps->i3) {
+    return false;
+  } else if (i4 < other_eps->i4) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 bool Epsilon::equals(Node const * other) const {
-  return (get_indices() == static_cast<Epsilon const *>(other)->get_indices());
+  auto other_eps = static_cast<Epsilon const *> (other);
+  return (i1 == other_eps->i1 && i2 == other_eps->i2 && i3 == other_eps->i3 && i4 == other_eps->i4);
 }
 
 std::unique_ptr<Node> Epsilon::clone () const {

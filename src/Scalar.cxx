@@ -9,7 +9,7 @@ Scalar::Scalar (size_t variable, mpq_class const & fraction) : map(std::map<size
 
 Scalar::Scalar (Scalar const & other) : map(other.map) { }
 
-int Scalar::order () const { return 100; }
+char Scalar::order () const { return 100; }
 
 bool Scalar::isZero () const {
   return std::all_of(map.cbegin(), map.cend(),
@@ -18,7 +18,7 @@ bool Scalar::isZero () const {
     });
 }
 
-std::map<size_t, mpq_class> Scalar::get() const { return map; }
+std::map<size_t, mpq_class> const & Scalar::get() const { return map; }
 
 std::string Scalar::print () const {
   std::stringstream ss;
@@ -92,8 +92,8 @@ std::set<size_t> Scalar::getVariableSet () const {
   return ret;
 }
 
-std::map<size_t, mpq_class> const & Scalar::getCoefficientMap () const {
-  return map;
+std::map<size_t, mpq_class> const * Scalar::getCoefficientMap () const {
+  return &map;
 }
 
 void Scalar::setVariablesToZero (Forest<Node> &, std::set<size_t> const & variables) {

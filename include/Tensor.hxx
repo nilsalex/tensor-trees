@@ -7,21 +7,13 @@
 
 class Tensor : public Node {
  private:
-  size_t rank;
-  std::string indices;
  
  public:
-  Tensor(size_t const rank, std::string const & indices);
-
-  size_t get_rank() const;
-  std::string const & get_indices() const;
-
-  void exchangeTensorIndices (std::map<char, char> const & exchange_map);
+  virtual void exchangeTensorIndices (std::map<char, char> const & exchange_map) = 0;
+  virtual int sortIndices () = 0;
 
   std::set<size_t> getVariableSet () const override;
-  std::map<size_t, mpq_class> const & getCoefficientMap () const override;
-
-  int sortIndices ();
+  std::map<size_t, mpq_class> const * getCoefficientMap () const override;
 
   virtual mpq_class evaluate(std::map <char, size_t> const & eval_map) const = 0;
   virtual mpq_class symmetrize() = 0;

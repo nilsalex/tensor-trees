@@ -4,11 +4,15 @@
 
 class Epsilon : public Tensor {
  private:
+   char i1, i2, i3, i4;
 
  public:
   Epsilon(char const i1, char const i2, char const i3, char const i4);
 
-  int order () const override;
+  char order () const override;
+
+  void exchangeTensorIndices (std::map<char, char> const & exchange_map) override;
+  int sortIndices () override;
 
   std::map<size_t, mpq_class> evaluateTree (Tree<Node> const & tree, std::map<char, size_t> const & eval_map, mpq_class prefactor) const; 
   mpq_class evaluate(std::map <char, size_t> const & eval_map) const override;

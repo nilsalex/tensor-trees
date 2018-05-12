@@ -17,9 +17,9 @@ class Node {
   virtual void exchangeTensorIndices (std::map<char, char> const & exchange_map) = 0;
   virtual void multiply (mpq_class const & factor) = 0;
   virtual bool isLeastNode (Forest<Node> const & forest) const;
-  virtual int order () const = 0;
+  virtual char order () const = 0;
   virtual std::set<size_t> getVariableSet () const = 0;
-  virtual std::map<size_t, mpq_class> const & getCoefficientMap () const = 0;
+  virtual std::map<size_t, mpq_class> const * getCoefficientMap () const = 0;
   virtual void setVariablesToZero (Forest<Node> & forest, std::set<size_t> const & variables) = 0;
   virtual void substituteVariables (std::map<size_t, size_t> const & subs_map) = 0;
 

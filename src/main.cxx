@@ -40,18 +40,18 @@ int main () {
 
   std::for_each(symmetries.cbegin(), symmetries.cend(),
     [&tree,n=0,&symmetries] (auto const & p) mutable {
-//      std::cout << "Applying symmetry " << ++n << " out of " << symmetries.size() << std::endl;
+      std::cout << "Applying symmetry " << ++n << " out of " << symmetries.size() << std::endl;
       symmetrizeTree (tree, p.first, p.second);
       redefineScalarsSym (tree);
     });
 
-//  redefineScalarsSym (tree);
+  sortTree (tree);
 
   if (!tree->isValid() || !isTreeSorted (tree)) {
     throw 0;
   }
 
-  std::cout << printTree (tree);
+//  std::cout << printTree (tree);
 
   return 0;
 }

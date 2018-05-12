@@ -128,7 +128,7 @@ void redefineScalarsSym (std::unique_ptr<Tree<Node>> & tree) {
   
   while (leaf_it != nullptr) {
     Scalar * scalar = static_cast<Scalar *>(leaf_it->node.get());
-    auto first = scalar->getCoefficientMap().begin();
+    auto first = scalar->getCoefficientMap()->begin();
     auto it = substitution_map.find(first->first);
     if (it == substitution_map.end()) {
       std::unique_ptr<Node> new_scalar = std::make_unique<Scalar>(++var_counter, first->second);
@@ -154,6 +154,15 @@ void sortForest (Forest<Node> & forest) {
   std::sort (forest.begin(), forest.end(),
     [] (auto const & n, auto const & m) {
       return *(n->node) < m->node.get();
+    });
+}
+
+void sortTree (std::unique_ptr<Tree<Node>> & tree) {
+  sortForest (tree->forest);
+
+  std::for_each(tree->forest.begin(), tree->forest.end(),
+    [] (auto & t) {
+      sortTree (t);
     });
 }
 
@@ -200,7 +209,7 @@ void insertBranch (std::unique_ptr<Tree<Node>> & dst, std::vector<Node *> & bran
     insertBranch (*node_it, branch, node_number + 1);
   }
 
-  sortForest(dst->forest);
+//  sortForest(dst->forest);
 }
 
 void removeEmptyBranches (std::unique_ptr<Tree<Node>> & tree) {
@@ -308,7 +317,7 @@ coefficient_matrix getCoefficientMatrix (std::unique_ptr<Tree<Node>> const & tre
 
   while (leaf_it != nullptr) {
     auto tmp_vec = leaf_it->node->getCoefficientMap();
-    ret.insert (std::move(tmp_vec));
+    ret.insert (*tmp_vec);
 
     leaf_it = leaf_it->nextLeaf();
   }

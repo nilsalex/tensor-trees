@@ -40,6 +40,8 @@ void removeEmptyBranches (std::unique_ptr<Tree<Node>> & tree);
 
 void sortForest (Forest<Node> & forest);
 
+void sortTree (std::unique_ptr<Tree<Node>> & tree);
+
 bool isTreeSorted (std::unique_ptr<Tree<Node>> const & tree);
 
 std::set<size_t> getVariableSet (std::unique_ptr<Tree<Node>> const & tree);

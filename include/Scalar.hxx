@@ -12,8 +12,8 @@ class Scalar : public Node {
 
   Scalar (Scalar const & other);
 
-  int order () const override;
-  std::map<size_t, mpq_class> get() const;
+  char order () const override;
+  std::map<size_t, mpq_class> const & get() const;
   std::string print () const override;
 
   int applyTensorSymmetries (int parity) override;
@@ -26,7 +26,7 @@ class Scalar : public Node {
   std::map<size_t, mpq_class> evaluateTree (Tree<Node> const & tree, std::map<char, size_t> const & eval_map, mpq_class prefactor) const; 
 
   std::set<size_t> getVariableSet () const override;
-  std::map<size_t, mpq_class> const & getCoefficientMap () const override;
+  std::map<size_t, mpq_class> const * getCoefficientMap () const override;
 
   void addOther(Scalar const * other);
 
