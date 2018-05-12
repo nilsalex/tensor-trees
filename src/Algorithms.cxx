@@ -135,7 +135,7 @@ void redefineScalarsSym (std::unique_ptr<Tree<Node>> & tree) {
       std::swap(new_scalar, leaf_it->node);
       substitution_map[first->first] = std::make_pair(var_counter, first->second);
     } else {
-      std::unique_ptr<Node> new_scalar = std::make_unique<Scalar>(it->second.first, it->second.second);
+      std::unique_ptr<Node> new_scalar = std::make_unique<Scalar>(it->second.first, first->second);
       std::swap(new_scalar, leaf_it->node);
     }
 
