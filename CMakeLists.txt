@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.9)
 
 project(tensor-trees)
 
-set(CMAKE_BUILD_TYPE Debug)
-#set(CMAKE_BUILD_TYPE Release)
+#set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -18,6 +18,6 @@ set(EIGEN_INCLUDE /usr/include/eigen3)
 include_directories(${CMAKE_SOURCE_DIR}/include ${EIGEN_INCLUDE})
 add_library(tensor-trees SHARED src/Node src/Tensor src/Epsilon src/Eta src/Scalar src/Algorithms src/Indices src/Builder src/LinearAlgebra)
 add_executable(main src/main)
-add_executable(main2 src/main2)
+add_executable(main_area_2nd src/main_area_2nd)
 target_link_libraries(main tensor-trees gmp gmpxx)
-target_link_libraries(main2 tensor-trees gmp gmpxx)
+target_link_libraries(main_area_2nd tensor-trees gmp gmpxx)
