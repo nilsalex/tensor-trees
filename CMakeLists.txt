@@ -16,7 +16,7 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(EIGEN_INCLUDE /usr/include/eigen3)
 
 include_directories(${CMAKE_SOURCE_DIR}/include ${EIGEN_INCLUDE})
-add_library(tensor-trees SHARED src/Node src/Tensor src/Epsilon src/Eta src/Scalar src/Algorithms src/Builder src/LinearAlgebra)
+add_library(tensor-trees SHARED src/Node src/Tensor src/Epsilon src/Eta src/Scalar src/Algorithms src/Indices src/Builder src/LinearAlgebra)
 add_executable(main src/main)
 add_executable(main2 src/main2)
 target_link_libraries(main tensor-trees gmp gmpxx)
