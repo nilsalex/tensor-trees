@@ -3,6 +3,7 @@
 
 #include <iostream>
 
+#include "Tensor.hxx"
 #include "Scalar.hxx"
 #include "LinearAlgebra.hxx"
 #include "Algorithms.hxx"
@@ -248,25 +249,42 @@ bool isTreeSorted (std::unique_ptr<Tree<Node>> const & tree) {
       }));
 }
 
-std::map<size_t, mpq_class> evaluateForest (Forest<Node> const & forest, std::map<char, size_t> const & eval_map, mpq_class prefactor) {
-  if (forest.size() == 0) {
-    return std::map<size_t, mpq_class> {};
+std::map<size_t, mpq_class> evaluateTree (std::unique_ptr<Tree<Node>> const & tree, std::map<char, char> const & eval_map, mpq_class prefactor) {
+  std::map<size_t, mpq_class> ret;
+
+  if (tree->isLeaf()) {
+    std::map<size_t, mpq_class> const * leaf_map = tree->node->getCoefficientMap();
+    std::for_each(leaf_map->cbegin(), leaf_map->cend(),
+      [&ret,&prefactor] (auto const & p) {
+        ret.insert(std::make_pair(p.first, prefactor * p.second));
+      });
   } else {
-    std::map<size_t, mpq_class> ret;
-    std::for_each(forest.cbegin(), forest.cend(),
-      [&ret, &eval_map, prefactor] (auto const & tp) {
-        auto _map = tp->node->evaluateTree(*tp, eval_map, prefactor);
+    if (!tree->isRoot()) {
+      prefactor *= static_cast<Tensor const *>(tree->node.get())->evaluate(eval_map);
+      if (prefactor == 0) {
+        return ret;
+      }
+    } 
+
+    std::for_each(tree->forest.cbegin(), tree->forest.cend(),
+      [&ret, &eval_map, &prefactor] (auto const & t) {
+        auto _map = evaluateTree (t, eval_map, prefactor);
         std::for_each(_map.cbegin(), _map.cend(),
           [&ret] (auto const & a) {
-            if (ret.count(a.first) == 0) {
-              ret[a.first] = a.second;
+            auto it = ret.find(a.first);
+            if (it == ret.end()) {
+              ret.insert(std::make_pair(a.first, a.second));
             } else {
-              ret[a.first] += a.second;
+              it->second += a.second;
+              if (it->second == 0) {
+                ret.erase(it);
+              }
             }
           });
       });
-    return ret;
   }
+
+  return ret;
 }
 
 void applyTensorSymmetries(std::unique_ptr<Tree<Node>> & tree, int parity) {
@@ -330,21 +348,6 @@ void shrinkForest (Forest<Node> & forest) {
   std::for_each(forest.begin(), forest.end(),
     [] (auto & t) {
       t->forest.shrink_to_fit();
-    });
-}
-
-std::string printCoefficientMatrix(coefficient_matrix const & mat) {
-  std::stringstream ss;
-  
-  ss << "Matrix([";
-
-  return ss.str();
-}
-
-void setVariablesToZero (Forest<Node> & forest, std::set<size_t> const & variables) {
-  std::for_each(forest.cbegin(), forest.cend(),
-    [&variables] (auto & t) {
-      t->node->setVariablesToZero (t->forest, variables);
     });
 }
 

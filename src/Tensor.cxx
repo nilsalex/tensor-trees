@@ -9,8 +9,4 @@ std::set<size_t> Tensor::getVariableSet () const { return std::set<size_t> {}; }
 
 std::map<size_t, mpq_class> const * Tensor::getCoefficientMap () const { return nullptr; }
 
-void Tensor::setVariablesToZero (Forest<Node> & forest, std::set<size_t> const & variables) {
-  ::setVariablesToZero (forest, variables);
-}
-
 void Tensor::substituteVariables (std::map<size_t, size_t> const &) { }

@@ -50,16 +50,12 @@ std::map<size_t, size_t> getVariableMap (std::unique_ptr<Tree<Node>> const & tre
 
 coefficient_matrix getCoefficientMatrix (std::unique_ptr<Tree<Node>> const & tree);
 
-std::string printCoefficientMatrix(coefficient_matrix const & mat);
-
 void substituteVariables (std::unique_ptr<Tree<Node>> & tree, std::map<size_t, size_t> const & subs_map);
 
-// ********** old **********
-
-std::map<size_t, mpq_class> evaluateForest (Forest<Node> const & forest, std::map<char, size_t> const & eval_map, mpq_class prefactor);
+std::map<size_t, mpq_class> evaluateTree (std::unique_ptr<Tree<Node>> const & tree, std::map<char, char> const & eval_map, mpq_class prefactor = 1);
 
 void shrinkForest (Forest<Node> & forest);
 
-void setVariablesToZero (Forest<Node> & forest, std::set<size_t> const & variables);
+// ********** old **********
 
 void redefineVariables (Forest<Node> & forest);

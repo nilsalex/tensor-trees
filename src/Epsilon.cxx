@@ -65,20 +65,11 @@ std::string Epsilon::print () const {
   return ss.str();
 }
 
-mpq_class Epsilon::evaluate(std::map <char, size_t> const & eval_map) const {
+int Epsilon::evaluate(std::map <char, char> const & eval_map) const {
   return epsilon_eval.at(64 * eval_map.at(i1)
                        + 16 * eval_map.at(i2)
                        +  4 * eval_map.at(i3)
                        +      eval_map.at(i4));
-}
-
-std::map<size_t, mpq_class> Epsilon::evaluateTree (Tree<Node> const & tree, std::map<char, size_t> const & eval_map, mpq_class prefactor) const {
-  prefactor *= this->evaluate(eval_map);
-  if (prefactor == 0) {
-    return std::map<size_t, mpq_class> {};
-  } else {
-    return evaluateForest (tree.forest, eval_map, prefactor);
-  }
 }
 
 mpq_class Epsilon::symmetrize() {

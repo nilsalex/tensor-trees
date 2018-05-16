@@ -11,6 +11,8 @@
 #include "Scalar.hxx"
 #include "Builder.hxx"
 
+#include "Indices.hxx"
+
 int main () {
   std::string indices {"abcdefghpq"};
 //  std::string indices {"abcd"};
@@ -78,6 +80,56 @@ int main () {
     std::cout << std::endl;
     std::cout << printTree (tree);
   }
+
+  auto res = evaluateTree(tree, {
+    {'a', 1},
+    {'b', 0},
+    {'c', 0},
+    {'d', 2},
+    {'e', 1},
+    {'f', 3},
+    {'g', 2},
+    {'h', 3},
+    {'p', 2},
+    {'q', 2}
+  });
+
+  std::pair<std::pair<std::pair<char, char>, std::pair<char, char>>,std::pair<std::pair<char, char>, std::pair<char, char>>> area_indices {{{0, 1}, {0, 1}}, {{0, 1}, {0, 1}}};
+  std::pair<char, char> derivative_indices {0, 0};
+
+  std::set<std::map<size_t, mpq_class>> eval_res_set;
+
+  do {
+    do {
+      std::map<char, char> eval_map {
+        {'a', area_indices.first.first.first},
+        {'b', area_indices.first.first.second},
+        {'c', area_indices.first.second.first},
+        {'d', area_indices.first.second.second},
+        {'e', area_indices.second.first.first},
+        {'f', area_indices.second.first.second},
+        {'g', area_indices.second.second.first},
+        {'h', area_indices.second.second.second},
+        {'p', derivative_indices.first},
+        {'q', derivative_indices.second},
+      };
+      auto eval_res_tmp = evaluateTree (tree, eval_map);
+      if (!eval_res_tmp.empty()) {
+        eval_res_set.insert (std::move(eval_res_tmp));
+      }
+    } while (nextAreaIndicesPairSymmetric(area_indices));
+  } while (nextIndexPairSymmetric (derivative_indices));
+
+  std::for_each (eval_res_set.cbegin(), eval_res_set.cend(),
+    [] (auto const & m) {
+      std::for_each(m.cbegin(), m.cend(),
+        [] (auto const & p) {
+          std::cout << p.first << " -> " << p.second << "      ";
+        });
+      std::cout << std::endl;
+    });
+
+  std::cout << eval_res_set.size() << std::endl;
 
   return 0;
 }

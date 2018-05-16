@@ -23,8 +23,6 @@ class Scalar : public Node {
 
   std::unique_ptr<Node> clone () const override;
 
-  std::map<size_t, mpq_class> evaluateTree (Tree<Node> const & tree, std::map<char, size_t> const & eval_map, mpq_class prefactor) const; 
-
   std::set<size_t> getVariableSet () const override;
   std::map<size_t, mpq_class> const * getCoefficientMap () const override;
 
@@ -34,7 +32,6 @@ class Scalar : public Node {
   bool equals (Node const * other) const override;
   bool isZero () const;
 
-  void setVariablesToZero (Forest<Node> & forest, std::set<size_t> const & variables) override;
   void substituteVariables (std::map<size_t, size_t> const & subs_map) override;
 
   ~Scalar() = default;

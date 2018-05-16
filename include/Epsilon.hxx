@@ -14,8 +14,7 @@ class Epsilon : public Tensor {
   void exchangeTensorIndices (std::map<char, char> const & exchange_map) override;
   int sortIndices () override;
 
-  std::map<size_t, mpq_class> evaluateTree (Tree<Node> const & tree, std::map<char, size_t> const & eval_map, mpq_class prefactor) const; 
-  mpq_class evaluate(std::map <char, size_t> const & eval_map) const override;
+  int evaluate(std::map <char, char> const & eval_map) const override;
   mpq_class symmetrize() override;
   std::string print () const override;
   int applyTensorSymmetries (int parity) override;

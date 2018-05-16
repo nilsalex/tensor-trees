@@ -33,22 +33,15 @@ std::string Eta::print () const {
   return ss.str();
 }
 
-mpq_class Eta::evaluate(std::map <char, size_t> const & eval_map) const {
-  if (i1 != i2) {
+int Eta::evaluate(std::map <char, char> const & eval_map) const {
+  char _i1 = eval_map.at(i1);
+  char _i2 = eval_map.at(i2);
+  if (_i1 != _i2) {
     return 0;
-  } else if (i1 > 0) {
+  } else if (_i1 > 0) {
     return -1;
   } else {
     return 1;
-  }
-}
-
-std::map<size_t, mpq_class> Eta::evaluateTree (Tree<Node> const & tree, std::map<char, size_t> const & eval_map, mpq_class prefactor) const {
-  prefactor *= this->evaluate(eval_map);
-  if (prefactor == 0) {
-    return std::map<size_t, mpq_class> {};
-  } else {
-    return evaluateForest (tree.forest, eval_map, prefactor);
   }
 }
 

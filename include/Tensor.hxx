@@ -15,10 +15,9 @@ class Tensor : public Node {
   std::set<size_t> getVariableSet () const override;
   std::map<size_t, mpq_class> const * getCoefficientMap () const override;
 
-  virtual mpq_class evaluate(std::map <char, size_t> const & eval_map) const = 0;
+  virtual int evaluate(std::map <char, char> const & eval_map) const = 0;
   virtual mpq_class symmetrize() = 0;
   void multiply (mpq_class const & factor) override;
-  void setVariablesToZero (Forest<Node> & forest, std::set<size_t> const & variables) override;
   void substituteVariables (std::map<size_t, size_t> const & subs_map) override;
 
   ~Tensor() = default;

@@ -39,15 +39,6 @@ std::unique_ptr<Node> Scalar::clone () const {
   return std::make_unique<Scalar>(*this);
 }
 
-std::map<size_t, mpq_class> Scalar::evaluateTree (Tree<Node> const &, std::map<char, size_t> const &, mpq_class prefactor) const {
-  std::map<size_t, mpq_class> ret;
-  std::for_each(map.cbegin(), map.cend(),
-    [&ret,&prefactor] (auto const & p) {
-      ret.insert({p.first, p.second * prefactor});
-    });
-  return ret;
-}
-
 int Scalar::applyTensorSymmetries (int parity) {
   std::for_each(map.begin(), map.end(),
     [&parity] (auto & p) {
@@ -94,13 +85,6 @@ std::set<size_t> Scalar::getVariableSet () const {
 
 std::map<size_t, mpq_class> const * Scalar::getCoefficientMap () const {
   return &map;
-}
-
-void Scalar::setVariablesToZero (Forest<Node> &, std::set<size_t> const & variables) {
-  std::for_each(variables.cbegin(), variables.cend(),
-    [this] (auto const & v) {
-      this->map.erase(v);
-    });
 }
 
 void Scalar::substituteVariables (std::map<size_t, size_t> const & subs_map) {
