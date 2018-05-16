@@ -1,3 +1,4 @@
+#include <cassert>
 #include "Indices.hxx"
 
 bool nextIndexPair (std::pair<char, char> & indices) {
