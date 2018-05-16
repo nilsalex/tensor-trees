@@ -157,7 +157,6 @@ int main () {
         [&row_counter,&ofile] (auto const & p) {
           ofile << row_counter << "\t" << p.first << "\t" << p.second << std::endl;
         });
-      ofile << std::endl;
       ++row_counter;
     });
 
