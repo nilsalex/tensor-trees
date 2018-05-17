@@ -132,6 +132,7 @@ int main () {
   std::cout << std::endl;
   std::cout << "Completed! There are " << eval_res_set.size() << " equations." << std::endl;
   std::cout << "Variables range from " << min_var << " to " << max_var << std::endl;
+/*
   std::cout << "Where to save the equations?" << std::endl;
   std::cout << "filename : ";
   std::string filename;
@@ -148,6 +149,22 @@ int main () {
         });
       ++row_counter;
     });
+*/
+  eval_mat eval_res_int;
+
+  std::for_each (eval_res_set.cbegin(), eval_res_set.cend(),
+    [row_counter=0,&eval_res_int] (auto const & m) mutable {
+      std::transform (m.cbegin(), m.cend(), std::inserter(eval_res_int.values, eval_res_int.values.begin()),
+        [row_counter] (auto const & p) {
+          mpq_class frac_tmp = p.second;
+          frac_tmp *= 256;
+          return std::make_pair(std::make_pair(row_counter, p.first), frac_tmp.get_num().get_si());
+        });
+        ++row_counter;
+    });
+
+  eval_res_int.save("eval_mat_1st.prs");
+
 
   return 0;
 }

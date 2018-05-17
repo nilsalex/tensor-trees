@@ -28,7 +28,9 @@ int main () {
     {{{'k', 'l'}, {'l', 'k'}}, -1},
     {{{'a', 'c'}, {'b', 'd'}, {'c', 'a'}, {'d', 'b'}}, 1},
     {{{'e', 'g'}, {'f', 'h'}, {'g', 'e'}, {'h', 'f'}}, 1},
-    {{{'i', 'k'}, {'j', 'l'}, {'k', 'i'}, {'l', 'j'}}, 1}
+    {{{'i', 'k'}, {'j', 'l'}, {'k', 'i'}, {'l', 'j'}}, 1},
+    {{{'a', 'e'}, {'b', 'f'}, {'c', 'g'}, {'d', 'h'}, {'p', 'q'},
+      {'e', 'a'}, {'f', 'b'}, {'g', 'c'}, {'h', 'd'}, {'q', 'p'}}, 1}
   };
 
   std::cout << "################################" << std::endl;
@@ -64,6 +66,9 @@ int main () {
     throw 0;
   }
 
+  auto variable_set = getVariableSet (tree);
+  std::cout << "There are " << variable_set.size() << " variables." << std::endl;
+/*
   std::cout << "print tree? [y/n] ";
 
   char c;
@@ -73,7 +78,7 @@ int main () {
     std::cout << std::endl;
     std::cout << printTree (tree);
   }
-
+*/
   std::pair<std::pair<char, char>, std::pair<char, char>> area_indices_1 {{0, 1}, {0, 1}};
   std::pair<std::pair<char, char>, std::pair<char, char>> area_indices_2 {{0, 1}, {0, 1}};
   std::pair<std::pair<char, char>, std::pair<char, char>> area_indices_3 {{0, 1}, {0, 1}};
@@ -143,6 +148,7 @@ int main () {
   std::cout << std::endl;
   std::cout << "Completed! There are " << eval_res_set.size() << " equations." << std::endl;
   std::cout << "Variables range from " << min_var << " to " << max_var << std::endl;
+  /*
   std::cout << "Where to save the equations?" << std::endl;
   std::cout << "filename : ";
   std::string filename;
@@ -150,7 +156,6 @@ int main () {
 
   std::ofstream ofile;
   ofile.open(filename);
-
   std::for_each (eval_res_set.cbegin(), eval_res_set.cend(),
     [row_counter=1,&ofile] (auto const & m) mutable {
       std::for_each(m.cbegin(), m.cend(),
@@ -159,6 +164,22 @@ int main () {
         });
       ++row_counter;
     });
+  */
+
+  eval_mat eval_res_int;
+
+  std::for_each (eval_res_set.cbegin(), eval_res_set.cend(),
+    [row_counter=0,&eval_res_int] (auto const & m) mutable {
+      std::transform (m.cbegin(), m.cend(), std::inserter(eval_res_int.values, eval_res_int.values.begin()),
+        [row_counter] (auto const & p) {
+          mpq_class frac_tmp = p.second;
+          frac_tmp *= 256;
+          return std::make_pair(std::make_pair(row_counter, p.first), frac_tmp.get_num().get_si());
+        });
+        ++row_counter;
+    });
+
+  eval_res_int.save("eval_mat.prs");
 
   return 0;
 }

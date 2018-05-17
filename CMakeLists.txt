@@ -15,11 +15,15 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 set(EIGEN_INCLUDE /usr/include/eigen3)
 
+find_package(Boost COMPONENTS serialization REQUIRED)
+
 include_directories(${CMAKE_SOURCE_DIR}/include ${EIGEN_INCLUDE})
 add_library(tensor-trees SHARED src/Node src/Tensor src/Epsilon src/Eta src/Scalar src/Algorithms src/Indices src/Builder src/LinearAlgebra)
 add_executable(main src/main)
 add_executable(main_area_2nd src/main_area_2nd)
 add_executable(main_area_1st src/main_area_1st)
-target_link_libraries(main tensor-trees gmp gmpxx)
-target_link_libraries(main_area_2nd tensor-trees gmp gmpxx)
-target_link_libraries(main_area_1st tensor-trees gmp gmpxx)
+add_executable(load_mat src/load_mat)
+target_link_libraries(main tensor-trees gmp gmpxx ${Boost_LIBRARIES})
+target_link_libraries(load_mat tensor-trees gmp gmpxx ${Boost_LIBRARIES})
+target_link_libraries(main_area_2nd tensor-trees gmp gmpxx ${Boost_LIBRARIES})
+target_link_libraries(main_area_1st tensor-trees gmp gmpxx ${Boost_LIBRARIES})
