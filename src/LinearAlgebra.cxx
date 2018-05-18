@@ -41,43 +41,18 @@ std::set<size_t> eval_mat::row_set () const {
   return ret;
 }
 
-std::set<size_t> findDependentVariables (std::set<std::map<size_t, mpq_class>> const & matrix) {
-  size_t min_var = std::numeric_limits<size_t>::max();
-  size_t max_var = 0;
-
-  std::for_each (matrix.cbegin(), matrix.cend(),
-    [&min_var,&max_var] (auto const & m) {
-      auto it = m.begin();
-      if (min_var > it->first) {
-        min_var = it->first;
-      }
-      size_t _max_var = it->first;
-      while (++it != m.end()) {
-        _max_var = it->first;
-      }
-      if (max_var < _max_var) {
-        max_var = _max_var;
-      }
-    });
-
-  MatrixXq mq(matrix.size(), max_var - min_var + 1);
+std::set<size_t> findDependentVariables (std::set<std::pair<std::pair<size_t, size_t>, mpq_class>> const & matrix, size_t rows, size_t cols) {
+  MatrixXq mq(rows, cols);
 
   std::for_each(matrix.cbegin(), matrix.cend(),
-    [row_counter=0,&mq,&min_var,&max_var] (auto const & v) mutable {
-      for (size_t col_counter = 0; col_counter == max_var - min_var + 1; ++col_counter) {
-        if (v.count(min_var + col_counter) == 1) {
-          mq(row_counter, col_counter) = v.at(min_var + col_counter);
-        } else {
-          mq(row_counter, col_counter) = 0;
-        }
-      }
-      ++row_counter;
+    [&mq] (auto const & v) mutable {
+      mq (v.first.first, v.first.second) = v.second;
     });
 
   Eigen::FullPivLU<MatrixXq> lu_decompq(mq);
   
   MatrixXq kq = lu_decompq.kernel();
-/*
+
   std::set<size_t> ret; 
 
   for (int column_counter = 0; column_counter < kq.cols(); ++column_counter) {
@@ -92,6 +67,6 @@ std::set<size_t> findDependentVariables (std::set<std::map<size_t, mpq_class>> c
       }
     }
   }
-*/
-  return {};
+
+  return ret;
 }

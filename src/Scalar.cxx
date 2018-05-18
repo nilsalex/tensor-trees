@@ -102,3 +102,10 @@ void Scalar::substituteVariables (std::map<size_t, size_t> const & subs_map) {
 
   std::swap(this->map, new_scalar.map);
 }
+
+void Scalar::removeVariables (std::set<size_t> const & variables) {
+  std::for_each (variables.cbegin(), variables.cend(),
+    [this] (auto const & v) {
+      this->map.erase(v);
+    });
+}

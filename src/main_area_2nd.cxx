@@ -127,59 +127,70 @@ int main () {
       } while (nextAreaIndices(area_indices_2));
     } while (nextAreaIndices(area_indices_1));
   } while (nextIndexPair (derivative_indices));
-  size_t min_var = std::numeric_limits<size_t>::max();
-  size_t max_var = 0;
-
-  std::for_each (eval_res_set.cbegin(), eval_res_set.cend(),
-    [&min_var,&max_var] (auto const & m) {
-      auto it = m.begin();
-      if (min_var > it->first) {
-        min_var = it->first;
-      }
-      size_t _max_var = it->first;
-      while (++it != m.end()) {
-        _max_var = it->first;
-      }
-      if (max_var < _max_var) {
-        max_var = _max_var;
-      }
-    });
 
   std::cout << std::endl;
   std::cout << "Completed! There are " << eval_res_set.size() << " equations." << std::endl;
-  std::cout << "Variables range from " << min_var << " to " << max_var << std::endl;
-  /*
-  std::cout << "Where to save the equations?" << std::endl;
-  std::cout << "filename : ";
-  std::string filename;
-  std::cin >> filename;
 
-  std::ofstream ofile;
-  ofile.open(filename);
-  std::for_each (eval_res_set.cbegin(), eval_res_set.cend(),
-    [row_counter=1,&ofile] (auto const & m) mutable {
+  std::map<size_t, size_t> var_map;
+  std::set<size_t> erase_set = variable_set;
+  std::set<std::pair<std::pair<size_t, size_t>, mpq_class>> eval_res_mat;
+  std::set<std::pair<std::pair<size_t, size_t>, mpq_class>> eval_res_mat_mapped;
+
+  std::for_each(eval_res_set.cbegin(), eval_res_set.cend(),
+    [row_counter=0,&eval_res_mat] (auto const & m) mutable {
       std::for_each(m.cbegin(), m.cend(),
-        [&row_counter,&ofile] (auto const & p) {
-          ofile << row_counter << "\t" << p.first << "\t" << p.second << std::endl;
-        });
-      ++row_counter;
+        [&row_counter,&eval_res_mat] (auto const & p) {
+          eval_res_mat.insert(std::make_pair(std::make_pair(row_counter, p.first), p.second));
+        }); 
+      ++row_counter; 
+    }); 
+
+  eval_res_set.clear();
+
+  std::for_each(eval_res_mat.cbegin(), eval_res_mat.cend(),
+    [&eval_res_mat_mapped,&var_map,&erase_set,var=0] (auto const & v) mutable {
+      erase_set.erase(v.first.second);
+      auto it = var_map.find(v.first.second);
+      if (it == var_map.end()) {
+        var_map.insert(std::make_pair(v.first.second, var));
+        ++var;
+      }
+      eval_res_mat_mapped.insert(std::make_pair(std::make_pair(v.first.first, var_map.at(v.first.second)), v.second));
     });
-  */
 
-  eval_mat eval_res_int;
+  eval_res_mat.clear();
 
-  std::for_each (eval_res_set.cbegin(), eval_res_set.cend(),
-    [row_counter=0,&eval_res_int] (auto const & m) mutable {
-      std::transform (m.cbegin(), m.cend(), std::inserter(eval_res_int.values, eval_res_int.values.begin()),
-        [row_counter] (auto const & p) {
-          mpq_class frac_tmp = p.second;
-          frac_tmp *= 256;
-          return std::make_pair(std::make_pair(row_counter, p.first), frac_tmp.get_num().get_si());
-        });
-        ++row_counter;
+  std::cout << "These equations contain " << var_map.size() << " variables." << std::endl;
+  std::cout << "That is, " << erase_set.size() << " variables do not contribute at all." << std::endl;
+  std::cout << std::endl;
+  std::cout << "Computing LU decomposition of the linear system using Eigen subroutines ..." << std::endl;
+
+  auto erase_set_2_mapped = findDependentVariables (eval_res_mat_mapped, eval_res_mat_mapped.rbegin()->first.first, var_map.size());
+  std::cout << "... done! " << erase_set_2_mapped.size() << " variables are dependent." << std::endl;
+
+  eval_res_mat_mapped.clear();
+
+  std::map<size_t, size_t> var_rmap;
+  std::transform (var_map.cbegin(), var_map.cend(), std::inserter(var_rmap, var_rmap.begin()),
+    [] (auto const & p) {
+      return std::make_pair(p.second, p.first);
     });
 
-  eval_res_int.save("eval_mat.prs");
+  std::set<size_t> erase_set_2;
+  std::transform(erase_set_2_mapped.cbegin(), erase_set_2_mapped.cend(), std::inserter(erase_set_2, erase_set_2.begin()),
+    [&var_rmap] (auto const & v) {
+      return var_rmap.at(v);
+    });
+
+  erase_set_2_mapped.clear();
+
+  erase_set.merge(erase_set_2);
+  erase_set_2.clear();
+
+  std::cout << "Removing all " << erase_set.size() << " variables from the ansatz." << std::endl;
+
+  setVariablesToZero (tree, erase_set);
+  removeEmptyBranches (tree);
 
   return 0;
 }

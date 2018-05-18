@@ -359,6 +359,16 @@ void substituteVariables (std::unique_ptr<Tree<Node>> & tree, std::map<size_t, s
     leaf_it = leaf_it->nextLeaf();
   }
 }
+
+void setVariablesToZero (std::unique_ptr<Tree<Node>> & tree, std::set<size_t> const & variables) {
+  auto leaf_it = tree->firstLeaf();
+
+  while (leaf_it != nullptr) {
+    leaf_it->node->removeVariables(variables);
+    leaf_it = leaf_it->nextLeaf();
+  }
+}
+
 /*
 void redefineVariables (Forest<Node> & forest) {
   // get mapping 

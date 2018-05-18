@@ -20,6 +20,7 @@ class Node {
   virtual std::set<size_t> getVariableSet () const = 0;
   virtual std::map<size_t, mpq_class> const * getCoefficientMap () const = 0;
   virtual void substituteVariables (std::map<size_t, size_t> const & subs_map) = 0;
+  virtual void removeVariables (std::set<size_t> const & variables) = 0;
 
   virtual std::unique_ptr<Node> clone () const = 0;
 

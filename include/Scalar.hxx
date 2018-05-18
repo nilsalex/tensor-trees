@@ -33,6 +33,7 @@ class Scalar : public Node {
   bool isZero () const;
 
   void substituteVariables (std::map<size_t, size_t> const & subs_map) override;
+  void removeVariables (std::set<size_t> const & variables) override;
 
   ~Scalar() = default;
 };

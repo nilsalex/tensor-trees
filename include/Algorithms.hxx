@@ -56,6 +56,8 @@ std::map<size_t, mpq_class> evaluateTree (std::unique_ptr<Tree<Node>> const & tr
 
 void shrinkForest (Forest<Node> & forest);
 
+void setVariablesToZero (std::unique_ptr<Tree<Node>> & tree, std::set<size_t> const & variables);
+
 // ********** old **********
 
 void redefineVariables (Forest<Node> & forest);

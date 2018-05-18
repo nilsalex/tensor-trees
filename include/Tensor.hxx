@@ -19,6 +19,7 @@ class Tensor : public Node {
   virtual mpq_class symmetrize() = 0;
   void multiply (mpq_class const & factor) override;
   void substituteVariables (std::map<size_t, size_t> const & subs_map) override;
+  void removeVariables (std::set<size_t> const & variables) override;
 
   ~Tensor() = default;
 };
