@@ -3,6 +3,7 @@
 
 #include <iostream>
 
+#include "Indices.hxx"
 #include "Tensor.hxx"
 #include "Scalar.hxx"
 #include "LinearAlgebra.hxx"
@@ -369,63 +370,81 @@ void setVariablesToZero (std::unique_ptr<Tree<Node>> & tree, std::set<size_t> co
   }
 }
 
-/*
-void redefineVariables (Forest<Node> & forest) {
-  // get mapping 
-  // variable number -> consecutive number from 1 to number of variables
+void evaluateNumerical (std::unique_ptr<Tree<Node>> & tree, std::function< void (std::unique_ptr<Tree<Node>> const &, std::set<std::map<size_t, mpq_class>> &)> fun) {
+  std::set<std::map<size_t, mpq_class>> eval_res_set;
+  
+  fun (tree, eval_res_set);
 
-  auto variable_map = getVariableMap(forest);
+  std::set<size_t> var_set = getVariableSet (tree);
+  std::map<size_t, size_t> var_map;
+  std::set<size_t> erase_set = var_set;
+  std::set<std::pair<std::pair<size_t, size_t>, mpq_class>> eval_res_mat;
+  std::set<std::pair<std::pair<size_t, size_t>, mpq_class>> eval_res_mat_mapped;
 
+  std::for_each(eval_res_set.cbegin(), eval_res_set.cend(),
+    [row_counter=0,&eval_res_mat] (auto const & m) mutable {
+      std::for_each(m.cbegin(), m.cend(),
+        [&row_counter,&eval_res_mat] (auto const & p) {
+          eval_res_mat.insert(std::make_pair(std::make_pair(row_counter, p.first), p.second));
+        }); 
+      ++row_counter; 
+    }); 
 
-  // construct inverse mapping
+  eval_res_set.clear();
 
-  std::map<size_t, size_t> reverse_variable_map;
-  std::for_each(variable_map.cbegin(), variable_map.cend(),
-    [&reverse_variable_map] (auto const & p) {
-      reverse_variable_map[p.second] = p.first;
-    });
-
-  // get matrix of coefficients in front of variables
-  // using variable mapping
-
-  auto coeff_mat = getCoefficientMatrix(forest, variable_map);
-
-  // find a set of dependent variables (using the consecutive numbering)
-
-  auto _dependent_variables = findDependentVariables (coeff_mat);
-
-  // transform to initial numbering
-
-  std::set<size_t> dependent_variables;
-  std::for_each(_dependent_variables.cbegin(), _dependent_variables.cend(),
-    [&dependent_variables,&reverse_variable_map] (auto const & i) {
-      dependent_variables.insert(reverse_variable_map.at(i));
-    });
-
-  // set dependent variables to zero
-
-  setVariablesToZero (forest, dependent_variables);
-  removeEmptyBranches(forest);
-  shrinkForest(forest);
-
-  std::map<size_t, size_t> substitution_map;
-  std::for_each(variable_map.cbegin(), variable_map.cend(),
-    [&substitution_map,&_dependent_variables,n=0] (auto const & p) mutable {
-      if (_dependent_variables.find(p.second) == _dependent_variables.end()) {
-        substitution_map[p.first] = ++n;
+  std::for_each(eval_res_mat.cbegin(), eval_res_mat.cend(),
+    [&eval_res_mat_mapped,&var_map,&erase_set,var=0] (auto const & v) mutable {
+      erase_set.erase(v.first.second);
+      auto it = var_map.find(v.first.second);
+      if (it == var_map.end()) {
+        var_map.insert(std::make_pair(v.first.second, var));
+        ++var;
       }
+      eval_res_mat_mapped.insert(std::make_pair(std::make_pair(v.first.first, var_map.at(v.first.second)), v.second));
     });
 
-  substituteVariables(forest, substitution_map);
+  eval_res_mat.clear();
 
-  std::for_each(dependent_variables.cbegin(), dependent_variables.cend(),
-    [] (auto const & v) {
-      std::cout << v << " " << std::endl;
-    });
+  std::cout << "These equations contain " << var_map.size() << " variables." << std::endl;
+  std::cout << "That is, " << erase_set.size() << " variables do not contribute at all." << std::endl;
+  std::cout << std::endl;
+  std::cout << "Computing LU decomposition of the linear system using Eigen subroutines ..." << std::endl;
 
-  std::for_each(substitution_map.cbegin(), substitution_map.cend(),
+  auto erase_set_2_mapped = findDependentVariables (eval_res_mat_mapped, eval_res_mat_mapped.rbegin()->first.first + 1, var_map.size());
+  std::cout << "... done! " << erase_set_2_mapped.size() << " variables are dependent." << std::endl;
+
+  eval_res_mat_mapped.clear();
+
+  std::map<size_t, size_t> var_rmap;
+  std::transform (var_map.cbegin(), var_map.cend(), std::inserter(var_rmap, var_rmap.begin()),
     [] (auto const & p) {
-      std::cout << p.first << " --> " << p.second << std::endl;
+      return std::make_pair(p.second, p.first);
     });
+
+  std::set<size_t> erase_set_2;
+  std::transform(erase_set_2_mapped.cbegin(), erase_set_2_mapped.cend(), std::inserter(erase_set_2, erase_set_2.begin()),
+    [&var_rmap] (auto const & v) {
+      return var_rmap.at(v);
+    });
+
+  erase_set_2_mapped.clear();
+
+  erase_set.merge(erase_set_2);
+  erase_set_2.clear();
+
+  std::cout << "Removing all " << erase_set.size() << " variables from the ansatz." << std::endl;
+
+  setVariablesToZero (tree, erase_set);
+  removeEmptyBranches (tree);
+
+  var_set = getVariableSet (tree);
+
+  var_map.clear();
+
+  std::transform (var_set.cbegin(), var_set.cend(), std::inserter (var_map, var_map.begin()),
+    [counter=0] (auto const & v) mutable {
+      return std::make_pair (v, ++counter);
+    });
+
+  substituteVariables (tree, var_map);
 }
-*/

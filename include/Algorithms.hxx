@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include <map>
 #include <set>
 #include <gmpxx.h>
@@ -57,6 +58,8 @@ std::map<size_t, mpq_class> evaluateTree (std::unique_ptr<Tree<Node>> const & tr
 void shrinkForest (Forest<Node> & forest);
 
 void setVariablesToZero (std::unique_ptr<Tree<Node>> & tree, std::set<size_t> const & variables);
+
+void evaluateNumerical (std::unique_ptr<Tree<Node>> & tree, std::function< void (std::unique_ptr<Tree<Node>> const &, std::set<std::map<size_t, mpq_class>> &)> fun);
 
 // ********** old **********
 

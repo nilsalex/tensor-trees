@@ -3,6 +3,8 @@
 #include <set>
 #include <vector>
 
+#include <iostream>
+
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 
@@ -50,6 +52,8 @@ std::set<size_t> findDependentVariables (std::set<std::pair<std::pair<size_t, si
     });
 
   Eigen::FullPivLU<MatrixXq> lu_decompq(mq);
+
+  std::cout << "Rank of the system : " << lu_decompq.rank() << std::endl;
   
   MatrixXq kq = lu_decompq.kernel();
 
