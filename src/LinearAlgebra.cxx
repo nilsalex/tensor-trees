@@ -14,6 +14,7 @@
 #include "LinearAlgebra.hxx"
 
 typedef Eigen::Matrix<mpq_class, Eigen::Dynamic, Eigen::Dynamic> MatrixXq;
+typedef Eigen::Matrix<mpq_class, Eigen::Dynamic, 1> VectorXq;
 
 template<class Archive>
 void eval_mat::serialize (Archive & ar, unsigned int const) {
@@ -44,17 +45,18 @@ std::set<size_t> eval_mat::row_set () const {
 }
 
 std::set<size_t> findDependentVariables (std::set<std::pair<std::pair<size_t, size_t>, mpq_class>> const & matrix, size_t rows, size_t cols) {
-  MatrixXq mq(rows, cols);
+  MatrixXq mq(cols, rows);
 
   std::for_each(matrix.cbegin(), matrix.cend(),
     [&mq] (auto const & v) mutable {
-      mq (v.first.first, v.first.second) = v.second;
+      mq (v.first.second, v.first.first) = v.second;
     });
 
   Eigen::FullPivLU<MatrixXq> lu_decompq(mq);
 
   std::cout << "Rank of the system : " << lu_decompq.rank() << std::endl;
   
+/*
   MatrixXq kq = lu_decompq.kernel();
 
   std::set<size_t> ret; 
@@ -69,6 +71,19 @@ std::set<size_t> findDependentVariables (std::set<std::pair<std::pair<size_t, si
         ret.insert(row_counter);
         break;
       }
+    }
+  }
+*/
+
+  std::set<size_t> ret;
+  VectorXq vector = VectorXq::Zero (cols);
+  for (size_t counter = 0; counter < cols; ++counter) {
+    if (counter != 0) {
+      vector (cols - counter) = 0;
+    }
+    vector (cols - counter - 1) = 1;   
+    if (lu_decompq.solve(vector).isZero()) {
+      ret.insert (cols - counter - 1);
     }
   }
 
