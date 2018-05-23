@@ -19,7 +19,7 @@
 int main () {
   std::string indices {"abcdefghijklpq"};
 
-  std::vector<std::pair<std::map<char, char>, int>> symmetries = {
+  std::vector<std::pair<std::map<char, char>, int>> exchange_symmetries = {
     {{{'a', 'b'}, {'b', 'a'}}, -1},
     {{{'c', 'd'}, {'d', 'c'}}, -1},
     {{{'e', 'f'}, {'f', 'e'}}, -1},
@@ -47,10 +47,10 @@ int main () {
   std::cout << "... ansatz tree constructed." << std::endl;
   std::cout << std::endl;
 
-  std::for_each(symmetries.cbegin(), symmetries.cend(),
-    [&tree,n=0,&symmetries] (auto const & p) mutable {
-      std::cout << "Applying symmetry " << ++n << " out of " << symmetries.size() << " ..." << std::endl;
-      symmetrizeTree (tree, p.first, p.second);
+  std::for_each(exchange_symmetries.cbegin(), exchange_symmetries.cend(),
+    [&tree,n=0,&exchange_symmetries] (auto const & p) mutable {
+      std::cout << "Applying exchange symmetry " << ++n << " out of " << exchange_symmetries.size() << " ..." << std::endl;
+      exchangeSymmetrizeTree (tree, p.first, p.second);
       redefineScalarsSym (tree);
       std::cout << "... applied." << std::endl;
     });
@@ -119,11 +119,8 @@ int main () {
   };
 
   evaluateNumerical (tree, function);
-  evaluateNumerical (tree, function);
-  evaluateNumerical (tree, function);
-  evaluateNumerical (tree, function);
-  evaluateNumerical (tree, function);
 
+/*
   std::cout << "print tree? [y/n] ";
 
   char c;
@@ -133,6 +130,7 @@ int main () {
     std::cout << std::endl;
     std::cout << printTree (tree);
   }
+*/
 
   return 0;
 }

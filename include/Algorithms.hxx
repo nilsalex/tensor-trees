@@ -7,14 +7,6 @@
 #include "Tree.hxx"
 #include "Node.hxx"
 
-typedef std::map<size_t, mpq_class> coefficient_vector;
-
-struct vec_compare {
-  bool operator () (coefficient_vector const & v1, coefficient_vector const & v2);
-};
-
-typedef std::set<coefficient_vector, vec_compare> coefficient_matrix;
-
 std::string printTree (std::unique_ptr<Tree<Node>> const & tree);
 
 std::string printForest (Forest<Node> const & f, size_t depth = 0);
@@ -27,7 +19,9 @@ void exchangeTensorIndices (std::unique_ptr<Tree<Node>> & tree, std::map<char, c
 
 void applyTensorSymmetries (std::unique_ptr<Tree<Node>> & tree, int parity = 1);
 
-void symmetrizeTree (std::unique_ptr<Tree<Node>> & tree, std::map<char, char> const & exchange_map, int parity = 1);
+void exchangeSymmetrizeTree (std::unique_ptr<Tree<Node>> & tree, std::map<char, char> const & exchange_map, int parity = 1);
+
+void multiExchangeSymmetrizeTree (std::unique_ptr<Tree<Node>> & tree, std::vector<std::pair<std::map<char, char>, int>> const & exchange_map_set);
 
 void redefineScalarsSym (std::unique_ptr<Tree<Node>> & tree);
 
@@ -49,8 +43,6 @@ std::set<size_t> getVariableSet (std::unique_ptr<Tree<Node>> const & tree);
 
 std::map<size_t, size_t> getVariableMap (std::unique_ptr<Tree<Node>> const & tree);
 
-coefficient_matrix getCoefficientMatrix (std::unique_ptr<Tree<Node>> const & tree);
-
 void substituteVariables (std::unique_ptr<Tree<Node>> & tree, std::map<size_t, size_t> const & subs_map);
 
 std::map<size_t, mpq_class> evaluateTree (std::unique_ptr<Tree<Node>> const & tree, std::map<char, char> const & eval_map, mpq_class prefactor = 1);
@@ -60,6 +52,8 @@ void shrinkForest (Forest<Node> & forest);
 void setVariablesToZero (std::unique_ptr<Tree<Node>> & tree, std::set<size_t> const & variables);
 
 void evaluateNumerical (std::unique_ptr<Tree<Node>> & tree, std::function< void (std::unique_ptr<Tree<Node>> const &, std::set<std::map<size_t, mpq_class>> &)> fun);
+
+bool compareTrees (std::unique_ptr<Tree<Node>> const & tree1, std::unique_ptr<Tree<Node>> const & tree2);
 
 // ********** old **********
 

@@ -9,40 +9,6 @@
 #include "LinearAlgebra.hxx"
 #include "Algorithms.hxx"
 
-bool vec_compare :: operator () (coefficient_vector const & v1, coefficient_vector const & v2) {
-  auto first_nonzero_it_1 = std::find_if (v1.cbegin(), v1.cend(), [] (auto const & p) { return p.second != 0; });
-  auto first_nonzero_it_2 = std::find_if (v2.cbegin(), v2.cend(), [] (auto const & p) { return p.second != 0; });
-
-  if (first_nonzero_it_1 == v1.cend()) {
-    if (first_nonzero_it_2 == v2.cend()) {
-      return false;
-    } else {
-      return true;
-    }
-  } else {
-    if (first_nonzero_it_2 == v2.cend()) {
-      return false;
-    } else {
-      // both are non-zero
-      // compare first non-zero variables
-      size_t const & var_1 = first_nonzero_it_1->first;
-      size_t const & var_2 = first_nonzero_it_2->first;
-      mpq_class const & frac_1 = first_nonzero_it_1->second;
-      mpq_class const & frac_2 = first_nonzero_it_2->second;
-
-      if (var_1 < var_2) {
-        return true;
-      } else if (var_1 > var_2) {
-        return false;
-      } else {
-        // both are non-zero starting at the same variable
-        // compare fractions
-        return false;
-      }
-    }
-  }
-}
-
 std::string printTree (std::unique_ptr<Tree<Node>> const & tree) {
   if (tree->isEmpty()) {
     return printForest (tree->forest, 0);
@@ -106,7 +72,7 @@ void exchangeTensorIndices (std::unique_ptr<Tree<Node>> & tree, std::map<char, c
     });
 }
 
-void symmetrizeTree (std::unique_ptr<Tree<Node>> & tree, std::map<char, char> const & exchange_map, int parity) {
+void exchangeSymmetrizeTree (std::unique_ptr<Tree<Node>> & tree, std::map<char, char> const & exchange_map, int parity) {
   multiplyTree(tree, mpq_class(1, 2));
 
   auto new_tree = copyTree(tree);
@@ -121,6 +87,26 @@ void symmetrizeTree (std::unique_ptr<Tree<Node>> & tree, std::map<char, char> co
 
   sortTreeAndMerge (tree, new_tree);
   removeEmptyBranches(tree);
+}
+
+void multiExchangeSymmetrizeTree (std::unique_ptr<Tree<Node>> & tree, std::vector<std::pair<std::map<char, char>, int>> const & exchange_map_set) {
+  multiplyTree (tree, mpq_class(1, exchange_map_set.size() + 1));
+
+  auto tree_copy = copyTree (tree);
+
+  std::for_each (exchange_map_set.cbegin(), exchange_map_set.cend(),
+    [&tree_copy,&tree] (auto const & p) {
+      auto new_tree = copyTree (tree_copy);
+      auto exchange_map = p.first;
+      int parity = p.second;
+      mpq_class factor = (parity < 0 ? -1 : 1);
+      multiplyTree (new_tree, factor);
+      exchangeTensorIndices (new_tree, exchange_map);
+      applyTensorSymmetries (new_tree);
+      removeEmptyBranches (new_tree);
+      sortTreeAndMerge (tree, new_tree);
+      removeEmptyBranches (tree);
+    });
 }
 
 void redefineScalarsSym (std::unique_ptr<Tree<Node>> & tree) {
@@ -329,21 +315,6 @@ std::set<size_t> getVariableSet (std::unique_ptr<Tree<Node>> const & tree) {
   return ret;
 }
 
-coefficient_matrix getCoefficientMatrix (std::unique_ptr<Tree<Node>> const & tree) {
-  coefficient_matrix ret;
-
-  auto leaf_it = tree->firstLeaf();
-
-  while (leaf_it != nullptr) {
-    auto tmp_vec = leaf_it->node->getCoefficientMap();
-    ret.insert (*tmp_vec);
-
-    leaf_it = leaf_it->nextLeaf();
-  }
-
-  return ret;
-}
-
 void shrinkForest (Forest<Node> & forest) {
   forest.shrink_to_fit();
   std::for_each(forest.begin(), forest.end(),
@@ -447,4 +418,21 @@ void evaluateNumerical (std::unique_ptr<Tree<Node>> & tree, std::function< void 
     });
 
   substituteVariables (tree, var_map);
+}
+
+bool compareTrees (std::unique_ptr<Tree<Node>> const & tree1, std::unique_ptr<Tree<Node>> const & tree2) {
+  bool nodes_equal = false;
+  if (tree1->isEmpty() != tree2->isEmpty()) {
+    nodes_equal = false;
+  } else if (tree1->isEmpty() && tree2->isEmpty()) {
+    nodes_equal = true;
+  } else {
+    nodes_equal = tree1->node->equals(tree2->node.get());
+  }
+
+  return (nodes_equal && std::equal(tree1->forest.cbegin(), tree1->forest.cend(),
+                                    tree2->forest.cbegin(), tree2->forest.cend(),
+                                    [] (auto const & t1, auto const & t2) {
+                                      return compareTrees (t1, t2);
+                                    }));
 }

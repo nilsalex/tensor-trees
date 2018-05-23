@@ -93,3 +93,37 @@ bool nextAreaIndicesPairSymmetric (std::pair<std::pair<std::pair<char, char>, st
     return false;
   }
 }
+
+bool nextAreaIndicesTripleSymmetric (std::tuple<std::pair<std::pair<char, char>, std::pair<char, char>>, std::pair<std::pair<char, char>, std::pair<char, char>>, std::pair<std::pair<char, char>, std::pair<char, char>>> & indices) {
+  assert (std::get<0>(indices) <= std::get<1>(indices));
+  assert (std::get<1>(indices) <= std::get<2>(indices));
+  assert (std::get<0>(indices) <= std::get<2>(indices));
+  if (std::get<2>(indices) < std::pair<std::pair<char, char>, std::pair<char, char>> {{2, 3}, {2, 3}}) {
+    nextAreaIndices (std::get<2>(indices));
+  assert (std::get<0>(indices) <= std::get<1>(indices));
+  assert (std::get<1>(indices) <= std::get<2>(indices));
+  assert (std::get<0>(indices) <= std::get<2>(indices));
+    return true;
+  } else if (std::get<1>(indices) != std::get<2>(indices)) {
+    nextAreaIndices (std::get<1>(indices));
+    std::get<2>(indices) = std::get<1>(indices);
+    assert (std::get<0>(indices) <= std::get<1>(indices));
+    assert (std::get<1>(indices) <= std::get<2>(indices));
+    assert (std::get<0>(indices) <= std::get<2>(indices));
+    return true;
+  } else if (std::get<0> (indices) != std::get<1> (indices)) {
+    nextAreaIndices (std::get<0>(indices));
+    std::get<1>(indices) = std::get<0>(indices);
+    std::get<2>(indices) = std::get<0>(indices);
+    assert (std::get<0>(indices) <= std::get<1>(indices));
+    assert (std::get<1>(indices) <= std::get<2>(indices));
+    assert (std::get<0>(indices) <= std::get<2>(indices));
+    return true;
+  } else {
+    indices = {{{0, 1}, {0, 1}}, {{0, 1}, {0, 1}}, {{0, 1}, {0, 1}}};
+    assert (std::get<0>(indices) <= std::get<1>(indices));
+    assert (std::get<1>(indices) <= std::get<2>(indices));
+    assert (std::get<0>(indices) <= std::get<2>(indices));
+    return false;
+  }
+}
