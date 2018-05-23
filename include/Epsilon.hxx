@@ -17,6 +17,7 @@ class Epsilon : public Tensor {
   int evaluate(std::map <char, char> const & eval_map) const override;
   mpq_class symmetrize() override;
   std::string print () const override;
+  std::string printMaple () const override;
   int applyTensorSymmetries (int parity) override;
 
   bool lessThan(Node const * other) const override;

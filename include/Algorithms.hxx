@@ -9,6 +9,10 @@
 
 std::string printTree (std::unique_ptr<Tree<Node>> const & tree);
 
+std::string printTreeMaple (std::unique_ptr<Tree<Node>> const & tree);
+
+std::string printBranchMaple (std::vector<Node *> const & branch);
+
 std::string printForest (Forest<Node> const & f, size_t depth = 0);
 
 std::unique_ptr<Tree<Node>> copyTree (std::unique_ptr<Tree<Node>> const & tree);

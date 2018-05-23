@@ -33,6 +33,13 @@ std::string Eta::print () const {
   return ss.str();
 }
 
+std::string Eta::printMaple () const {
+  std::stringstream ss;
+  ss << "g_[~" << i1 << ", ~" << i2 << "]";
+
+  return ss.str();
+}
+
 int Eta::evaluate(std::map <char, char> const & eval_map) const {
   char _i1 = eval_map.at(i1);
   char _i2 = eval_map.at(i2);

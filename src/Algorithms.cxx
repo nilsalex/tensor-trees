@@ -21,6 +21,40 @@ std::string printTree (std::unique_ptr<Tree<Node>> const & tree) {
   }
 }
 
+std::string printTreeMaple (std::unique_ptr<Tree<Node>> const & tree) {
+  std::stringstream ss;
+  auto it = tree->firstLeaf();
+
+  bool first = true;
+  while (it != nullptr) {
+    if (first) {
+      first = false;
+    } else {
+      ss << "+ ";
+    }
+    ss << printBranchMaple (it->getBranch());
+    ss << std::endl;
+    
+    it = it->nextLeaf();
+  }
+
+  return ss.str();
+}
+
+std::string printBranchMaple (std::vector <Node *> const & branch) {
+  assert (branch.size() > 1);
+  std::stringstream ss;
+  
+  ss << branch.back()->printMaple();
+
+  for (size_t counter = 0; counter < branch.size() - 1; ++counter) {
+    ss << " * ";
+    ss << branch[counter]->printMaple();
+  }
+
+  return ss.str();
+}
+
 std::string printForest (Forest<Node> const & f, size_t depth) {
   std::stringstream ss;
   std::for_each (f.cbegin(), f.cend(),

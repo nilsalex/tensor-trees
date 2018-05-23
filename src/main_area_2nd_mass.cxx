@@ -119,6 +119,7 @@ int main () {
 
   evaluateNumerical (tree, function);
 
+/*
   std::cout << "print tree? [y/n] ";
 
   char c;
@@ -128,6 +129,11 @@ int main () {
     std::cout << std::endl;
     std::cout << printTree (tree);
   }
+*/
+
+  std::ofstream of ("area_2nd_mass.txt");
+
+  of << printTreeMaple (tree);
 
   return 0;
 }

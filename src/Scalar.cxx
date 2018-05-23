@@ -31,6 +31,27 @@ std::string Scalar::print () const {
   return ss.str();
 }
 
+std::string Scalar::printMaple () const {
+  std::stringstream ss;
+  if (map.size() == 0) {
+    assert(false);
+  } else if (map.size() == 1) {
+    auto const & p = *(map.begin());
+    if (p.second == 0) {
+      assert(false);
+    } else if (p.second < 0) {
+      ss << "(" << p.second << ")";
+    } else {
+      ss << p.second;
+    }
+    ss << " * " << "mu__" << p.first;
+  } else {
+    assert(false);
+  }
+
+  return ss.str();
+}
+
 void Scalar::multiply (mpq_class const & factor) {
   std::for_each(map.begin(), map.end(), [&factor] (auto & p) { p.second *= factor; });
 }

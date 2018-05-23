@@ -12,6 +12,7 @@ class Node {
  
  public:
   virtual std::string print() const = 0;
+  virtual std::string printMaple () const = 0;
   virtual int applyTensorSymmetries (int parity) = 0;
   virtual void exchangeTensorIndices (std::map<char, char> const & exchange_map) = 0;
   virtual void multiply (mpq_class const & factor) = 0;

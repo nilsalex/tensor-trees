@@ -17,7 +17,7 @@
 #include "Indices.hxx"
 
 int main () {
-  std::string indices {"abcdpq"};
+  std::string indices {"abcdefpq"};
 
   std::vector<std::pair<std::map<char, char>, int>> exchange_symmetries = {
     {{{'a', 'b'}, {'b', 'a'}}, 1},

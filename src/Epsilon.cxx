@@ -65,11 +65,18 @@ std::string Epsilon::print () const {
   return ss.str();
 }
 
+std::string Epsilon::printMaple () const {
+  std::stringstream ss;
+  ss << "LeviCivita[~" << i1 << ", ~" << i2 << ", ~" << i3 << ", ~" << i4 << "]";
+
+  return ss.str();
+}
+
 int Epsilon::evaluate(std::map <char, char> const & eval_map) const {
-  return epsilon_eval.at(64 * eval_map.at(i1)
+  return (- 1 * epsilon_eval.at(64 * eval_map.at(i1)
                        + 16 * eval_map.at(i2)
                        +  4 * eval_map.at(i3)
-                       +      eval_map.at(i4));
+                       +      eval_map.at(i4)));
 }
 
 mpq_class Epsilon::symmetrize() {

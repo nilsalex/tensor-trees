@@ -15,6 +15,7 @@ class Scalar : public Node {
   char order () const override;
   std::map<size_t, mpq_class> const & get() const;
   std::string print () const override;
+  std::string printMaple () const override;
 
   int applyTensorSymmetries (int parity) override;
   void exchangeTensorIndices (std::map<char, char> const & exchange_map);

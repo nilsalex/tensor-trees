@@ -132,5 +132,9 @@ int main () {
   }
 */
 
+  std::ofstream of ("area_2nd_kinetic.txt");
+
+  of << printTreeMaple (tree);
+
   return 0;
 }
