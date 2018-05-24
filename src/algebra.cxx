@@ -4,17 +4,15 @@
 #include "Builder.hxx"
 
 int main () {
-/*
-  auto tree = loadTree ("area_1st_mass.prs");
+  auto tree = loadTree ("area_2nd_kinetic.prs");
+//  auto tree = buildEpsilonEtaTree ("abcdef");
 
-  std::cout << printTree (tree) << std::endl;
-*/
+//  std::cout << printTree (tree) << std::endl;
 
-  auto tree = buildEpsilonEtaTree ("abcdef");
+  contractTreeWithEta (tree, 'c', 'd');
+  canonicalizeTree (tree);
 
-  std::cout << printTree (tree) << std::endl;
-
-  contractTreeWithEta (tree, 'd', 'f');
+  std::cout << "contracted tree" << std::endl;
 
   std::cout << printTree (tree) << std::endl;
 }

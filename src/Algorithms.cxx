@@ -207,6 +207,18 @@ void sortTreeAndMerge (std::unique_ptr<Tree<Node>> & dst, std::unique_ptr<Tree<N
   }
 }
 
+void canonicalizeTree (std::unique_ptr<Tree<Node>> & tree) {
+  applyTensorSymmetries (tree);
+
+  auto ret = std::make_unique<Tree<Node>>();
+  
+  sortTreeAndMerge (ret, tree);
+  removeEmptyBranches (ret);
+  sortTree (ret);
+
+  std::swap (ret, tree);
+}
+
 void insertBranch (std::unique_ptr<Tree<Node>> & dst, std::vector<Node *> & branch, size_t const node_number) {
   if (branch.size() == node_number) {
     return;
@@ -497,25 +509,89 @@ Forest<Node> contractTreeWithEtaInner (std::unique_ptr<Tree<Node>> & tree, char 
   tree->parent = nullptr;
   Forest<Node> ret;
   auto & node_type = typeid (*(tree->node));
-  if (node_type == typeid (Epsilon) &&
-      static_cast<Epsilon *>(tree->node.get())->containsIndex (i1) &&
-      static_cast<Epsilon *>(tree->node.get())->containsIndex (i2)) {
-    return ret;
-  } else if (node_type == typeid (Eta) &&
-      static_cast<Eta *>(tree->node.get())->containsIndex (i1) &&
-      static_cast<Eta *>(tree->node.get())->containsIndex (i2)) {
-    tree->parent = nullptr;
-    multiplyTree (tree, mpq_class (4, 1));
-    std::for_each (tree->forest.begin(), tree->forest.end(),
-      [&ret] (auto & t) {
-        ret.emplace_back(std::move(t));
-      });
-    return ret;
+  if (node_type == typeid (Epsilon)) {
+    bool const contains_i1 = static_cast<Epsilon *>(tree->node.get())->containsIndex (i1);
+    bool const contains_i2 = static_cast<Epsilon *>(tree->node.get())->containsIndex (i2);
+    if (contains_i1) {
+      if (contains_i2) {
+        return ret;
+      } else {
+        auto _tree = std::make_unique<Tree<Node>>();
+        _tree->forest.emplace_back (std::move(tree));
+        return std::move(eliminateSecondEta(_tree, i1, i2)->forest);
+      }
+    } else {
+      if (contains_i2) {
+        auto _tree = std::make_unique<Tree<Node>>();
+        _tree->forest.emplace_back (std::move(tree));
+        return std::move(eliminateSecondEta(_tree, i2, i1)->forest);
+      } else {
+        contractTreeWithEta (tree, i1, i2);
+        ret.emplace_back (std::move(tree));
+        return ret;
+      }
+    }
+  } else if (node_type == typeid (Eta)) {
+    bool const contains_i1 = static_cast<Eta *>(tree->node.get())->containsIndex (i1);
+    bool const contains_i2 = static_cast<Eta *>(tree->node.get())->containsIndex (i2);
+    if (contains_i1) {
+      if (contains_i2) {
+        multiplyTree (tree, mpq_class (4, 1));
+        std::for_each (tree->forest.begin(), tree->forest.end(),
+          [&ret] (auto & t) {
+            ret.emplace_back(std::move(t));
+          });
+        return ret;
+      } else {
+        auto _tree = std::make_unique<Tree<Node>>();
+        _tree->forest.emplace_back (std::move(tree));
+        return std::move(eliminateSecondEta(_tree, i1, i2)->forest);
+      }
+    } else {
+      if (contains_i2) {
+        auto _tree = std::make_unique<Tree<Node>>();
+        _tree->forest.emplace_back (std::move(tree));
+        return std::move(eliminateSecondEta(_tree, i2, i1)->forest);
+      } else {
+        contractTreeWithEta (tree, i1, i2);
+        ret.emplace_back (std::move(tree));
+        return ret;
+      }
+    }
   } else {
     contractTreeWithEta (tree, i1, i2);
     ret.emplace_back (std::move(tree));
     return ret;
   }
+}
+
+std::unique_ptr<Tree<Node>> eliminateSecondEta (std::unique_ptr<Tree<Node>> & tree, char i1, char i2) {
+  auto ret = std::make_unique<Tree<Node>>();
+  auto it = tree->firstLeaf ();
+
+  while (it != nullptr) {
+    auto branch = it->getBranch();
+    assert (branch[0] != nullptr);
+
+    auto eta_it = std::find_if (branch.cbegin(), branch.cend(),
+      [i2] (auto const & n) {
+        return (n != nullptr &&
+                typeid (*n) == typeid (Eta) &&
+                static_cast<Eta *>(n)->containsIndex (i2));
+      });
+    char i_new = static_cast<Eta *>(*eta_it)->getOther(i2);
+
+    branch.erase (eta_it);
+    auto node_cpy = branch[0]->clone();
+    branch[0] = node_cpy.get();
+    static_cast<Tensor *>(branch[0])->exchangeTensorIndices({{i1, i_new}});
+
+    insertBranch (ret, branch);
+
+    it = it->nextLeaf();
+  }
+
+  return ret;
 }
 
 void saveTree (std::unique_ptr<Tree<Node>> const & tree, std::string const & filename) {

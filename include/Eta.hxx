@@ -31,6 +31,8 @@ class Eta : public Tensor {
 
   std::unique_ptr<Node> clone () const override;
 
+  char getOther (char i) const;
+
   template<class Archive>
   void serialize (Archive & ar, unsigned int const version);
 

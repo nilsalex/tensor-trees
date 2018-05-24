@@ -103,3 +103,13 @@ bool Eta::equals(Node const * other) const {
 std::unique_ptr<Node> Eta::clone () const {
   return std::unique_ptr<Node>(new Eta(*this));
 }
+
+char Eta::getOther (char i) const {
+  assert (i1 != i2);
+  assert ((i == i1) != (i == i2));
+  if (i == i1) {
+    return i2;
+  } else {
+    return i1;
+  }
+}

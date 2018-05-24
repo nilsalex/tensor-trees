@@ -33,6 +33,8 @@ void sortBranch (std::vector<Node *> & branch);
 
 void sortTreeAndMerge (std::unique_ptr<Tree<Node>> & dst, std::unique_ptr<Tree<Node>> const & src);
 
+void canonicalizeTree (std::unique_ptr<Tree<Node>> & tree);
+
 void insertBranch (std::unique_ptr<Tree<Node>> & dst, std::vector<Node *> & branch, size_t const node_number = 0);
 
 void removeEmptyBranches (std::unique_ptr<Tree<Node>> & tree);
@@ -60,6 +62,8 @@ void evaluateNumerical (std::unique_ptr<Tree<Node>> & tree, std::function< void 
 bool compareTrees (std::unique_ptr<Tree<Node>> const & tree1, std::unique_ptr<Tree<Node>> const & tree2);
 
 void contractTreeWithEta (std::unique_ptr<Tree<Node>> & tree, char i1, char i2);
+
+std::unique_ptr<Tree<Node>> eliminateSecondEta (std::unique_ptr<Tree<Node>> & tree, char i1, char i2);
 
 Forest<Node> contractTreeWithEtaInner (std::unique_ptr<Tree<Node>> & tree, char i1, char i2);
 
