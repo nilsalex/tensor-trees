@@ -96,6 +96,10 @@ mpq_class Epsilon::symmetrize() {
   return sortIndices();
 }
 
+bool Epsilon::containsIndex (char i) const {
+  return (i == i1 || i == i2 || i == i3 || i == i4);
+}
+
 int Epsilon::applyTensorSymmetries (int parity) {
   int epsilon_parity = sortIndices();
   return (parity * epsilon_parity);

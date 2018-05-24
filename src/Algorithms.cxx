@@ -9,6 +9,8 @@
 
 #include "Indices.hxx"
 #include "Tensor.hxx"
+#include "Epsilon.hxx"
+#include "Eta.hxx"
 #include "Scalar.hxx"
 #include "LinearAlgebra.hxx"
 #include "Algorithms.hxx"
@@ -476,7 +478,16 @@ bool compareTrees (std::unique_ptr<Tree<Node>> const & tree1, std::unique_ptr<Tr
 }
 
 void contractTreeWithEta (std::unique_ptr<Tree<Node>> & tree, char const i1, char const i2) {
-
+  if (tree->isEmpty()) {
+    std::for_each (tree->forest.begin(), tree->forest.end(), [i1, i2] (auto & t) { contractTreeWithEta (t, i1, i2); });
+  } else {
+    auto & node_type = typeid (*(tree->node));
+    if (node_type == typeid (Epsilon) &&
+        static_cast<Epsilon *>(tree->node.get())->containsIndex (i1) &&
+        static_cast<Epsilon *>(tree->node.get())->containsIndex (i2)) {
+      tree.reset();
+    }
+  }
 }
 
 void saveTree (std::unique_ptr<Tree<Node>> const & tree, std::string const & filename) {

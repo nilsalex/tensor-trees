@@ -67,6 +67,10 @@ mpq_class Eta::symmetrize() {
   return 1;
 }
 
+bool Eta::containsIndex (char i) const {
+  return (i == i1 || i == i2);
+}
+
 int Eta::applyTensorSymmetries (int parity) {
   sortIndices();
   return parity;

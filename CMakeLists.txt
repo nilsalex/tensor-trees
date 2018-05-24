@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.9)
 
 project(tensor-trees)
 
-#set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
+#set(CMAKE_BUILD_TYPE Release)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -26,6 +26,7 @@ add_executable(main_area_1st_mass src/main_area_1st_mass)
 add_executable(main_metric_1st src/main_metric_1st)
 add_executable(main_metric_2nd src/main_metric_2nd)
 add_executable(load src/load)
+add_executable(algebra src/algebra)
 target_link_libraries(main_area_2nd tensor-trees gmp gmpxx ${Boost_LIBRARIES})
 target_link_libraries(main_area_2nd_mass tensor-trees gmp gmpxx ${Boost_LIBRARIES})
 target_link_libraries(main_area_1st tensor-trees gmp gmpxx ${Boost_LIBRARIES})
@@ -33,3 +34,4 @@ target_link_libraries(main_area_1st_mass tensor-trees gmp gmpxx ${Boost_LIBRARIE
 target_link_libraries(main_metric_1st tensor-trees gmp gmpxx ${Boost_LIBRARIES})
 target_link_libraries(main_metric_2nd tensor-trees gmp gmpxx ${Boost_LIBRARIES})
 target_link_libraries(load tensor-trees gmp gmpxx ${Boost_LIBRARIES})
+target_link_libraries(algebra tensor-trees gmp gmpxx ${Boost_LIBRARIES})

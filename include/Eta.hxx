@@ -21,6 +21,7 @@ class Eta : public Tensor {
 
   int evaluate(std::map <char, char> const & eval_map) const override;
   mpq_class symmetrize() override;
+  bool containsIndex (char i) const override;
   std::string print () const override;
   std::string printMaple () const override;
   int applyTensorSymmetries (int parity) override;
