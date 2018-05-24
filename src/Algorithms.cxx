@@ -250,9 +250,10 @@ void removeEmptyBranches (std::unique_ptr<Tree<Node>> & tree) {
     [] (auto & t) {
 
       if (!t->isEmpty()) {
-        if (t->node->order() == 100 && static_cast<Scalar *>(t->node.get())->isZero()) {
+        auto is_node_scalar = (typeid(*(t->node)) == typeid(Scalar));
+        if (is_node_scalar && static_cast<Scalar *>(t->node.get())->isZero()) {
           return true;
-        } else if (t->isLeaf() && t->node->order() != 100) {
+        } else if (!is_node_scalar && t->isLeaf()) {
           return true;
         }
       } else {
@@ -477,16 +478,43 @@ bool compareTrees (std::unique_ptr<Tree<Node>> const & tree1, std::unique_ptr<Tr
                                     }));
 }
 
-void contractTreeWithEta (std::unique_ptr<Tree<Node>> & tree, char const i1, char const i2) {
-  if (tree->isEmpty()) {
-    std::for_each (tree->forest.begin(), tree->forest.end(), [i1, i2] (auto & t) { contractTreeWithEta (t, i1, i2); });
+void contractTreeWithEta (std::unique_ptr<Tree<Node>> & tree, char i1, char i2) {
+  std::vector<std::unique_ptr<Tree<Node>>> new_forest;
+  std::for_each (tree->forest.begin(), tree->forest.end(),
+    [i1, i2, &new_forest] (auto & t) {
+      auto parent = t->parent;
+      auto forest = contractTreeWithEtaInner (t, i1, i2);
+      std::for_each (forest.begin(), forest.end(),
+        [&t,parent] (auto & t2) {
+          t2->parent = parent;
+        });
+      new_forest.insert (new_forest.end(), std::make_move_iterator (forest.begin()), std::make_move_iterator (forest.end()));
+    });
+  std::swap (tree->forest, new_forest);
+}
+
+Forest<Node> contractTreeWithEtaInner (std::unique_ptr<Tree<Node>> & tree, char i1, char i2) {
+  tree->parent = nullptr;
+  Forest<Node> ret;
+  auto & node_type = typeid (*(tree->node));
+  if (node_type == typeid (Epsilon) &&
+      static_cast<Epsilon *>(tree->node.get())->containsIndex (i1) &&
+      static_cast<Epsilon *>(tree->node.get())->containsIndex (i2)) {
+    return ret;
+  } else if (node_type == typeid (Eta) &&
+      static_cast<Eta *>(tree->node.get())->containsIndex (i1) &&
+      static_cast<Eta *>(tree->node.get())->containsIndex (i2)) {
+    tree->parent = nullptr;
+    multiplyTree (tree, mpq_class (4, 1));
+    std::for_each (tree->forest.begin(), tree->forest.end(),
+      [&ret] (auto & t) {
+        ret.emplace_back(std::move(t));
+      });
+    return ret;
   } else {
-    auto & node_type = typeid (*(tree->node));
-    if (node_type == typeid (Epsilon) &&
-        static_cast<Epsilon *>(tree->node.get())->containsIndex (i1) &&
-        static_cast<Epsilon *>(tree->node.get())->containsIndex (i2)) {
-      tree.reset();
-    }
+    contractTreeWithEta (tree, i1, i2);
+    ret.emplace_back (std::move(tree));
+    return ret;
   }
 }
 
