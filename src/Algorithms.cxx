@@ -1,5 +1,9 @@
 #include <algorithm>
+#include <fstream>
 #include <sstream>
+
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
 
 #include <iostream>
 
@@ -469,4 +473,22 @@ bool compareTrees (std::unique_ptr<Tree<Node>> const & tree1, std::unique_ptr<Tr
                                     [] (auto const & t1, auto const & t2) {
                                       return compareTrees (t1, t2);
                                     }));
+}
+
+void contractTreeWithEta (std::unique_ptr<Tree<Node>> & tree, char const i1, char const i2) {
+
+}
+
+void saveTree (std::unique_ptr<Tree<Node>> const & tree, std::string const & filename) {
+  std::ofstream file {filename};
+  boost::archive::text_oarchive oa {file};
+  oa << tree;
+}
+
+std::unique_ptr<Tree<Node>> loadTree (std::string const & filename) {
+  std::ifstream file {filename};
+  boost::archive::text_iarchive ia {file};
+  std::unique_ptr<Tree<Node>> tree;
+  ia >> tree;
+  return tree;
 }

@@ -1,4 +1,9 @@
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/serialization/export.hpp>
+
 #include "Node.hxx"
+BOOST_CLASS_EXPORT(Node)
 
 bool Node::isLeastNode (Forest<Node> const & forest) const {
   bool least = true;

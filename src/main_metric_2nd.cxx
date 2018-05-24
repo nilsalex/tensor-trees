@@ -109,6 +109,7 @@ int main () {
   evaluateNumerical (tree, function);
   evaluateNumerical (tree, function);
 
+/*
   std::cout << "print tree? [y/n] ";
 
   char c;
@@ -117,6 +118,22 @@ int main () {
   if (c == 'y') {
     std::cout << std::endl;
     std::cout << printTree (tree);
+  }
+*/
+  saveTree (tree, "tree.prs");
+
+  auto tree_2 = loadTree ("tree.prs");
+
+  if (compareTrees (tree, tree_2)) {
+    std::cout << "trees coincide!" << std::endl;
+  } else {
+    std::cout << "ERROR: TREES DO NOT COINCIDE!" << std::endl;
+  }
+
+  if (tree->isValid() && tree_2->isValid()) {
+    std::cout << "both trees are valid." << std::endl;
+  } else {
+    std::cout << "ERROR: AT LEAST ONE TREE IS NOT VALID!" << std::endl;
   }
 
   return 0;

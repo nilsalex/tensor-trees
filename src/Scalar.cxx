@@ -1,13 +1,48 @@
 #include <iostream>
 #include <sstream>
 
-#include "Algorithms.hxx"
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+
+#include <boost/serialization/base_object.hpp>
+#include <boost/serialization/split_free.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/export.hpp>
 
 #include "Scalar.hxx"
+BOOST_CLASS_EXPORT(Scalar)
 
 Scalar::Scalar (size_t variable, mpq_class const & fraction) : map(std::map<size_t, mpq_class>({{variable, fraction}})) { }
 
 Scalar::Scalar (Scalar const & other) : map(other.map) { }
+
+namespace boost {
+namespace serialization {
+
+template<class Archive>
+void save (Archive & ar, const mpq_class & q, unsigned int const) {
+  ar << q.get_num().get_si();
+  ar << q.get_den().get_si();
+}
+
+template<class Archive>
+void load (Archive & ar, mpq_class & q, unsigned int const) {
+  long num, den;
+  ar >> num;
+  ar >> den;
+  q = mpq_class (num, den);
+}
+
+}
+}
+
+BOOST_SERIALIZATION_SPLIT_FREE(mpq_class)
+
+template<class Archive>
+void Scalar::serialize (Archive & ar, unsigned int const) {
+  ar & boost::serialization::base_object<Node>(*this);
+  ar & map;
+}
 
 char Scalar::order () const { return 100; }
 

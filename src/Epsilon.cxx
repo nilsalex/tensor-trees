@@ -1,10 +1,23 @@
 #include <sstream>
-#include "Algorithms.hxx"
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/serialization/base_object.hpp>
+#include <boost/serialization/export.hpp>
 
 #include "Epsilon.hxx"
+BOOST_CLASS_EXPORT(Epsilon)
 #include "eval.hxx"
 
 Epsilon::Epsilon(char const i1, char const i2, char const i3, char const i4) : i1(i1), i2(i2), i3(i3), i4(i4) {}
+
+template<class Archive>
+void Epsilon::serialize (Archive & ar, unsigned int const) {
+  ar & boost::serialization::base_object<Node>(*this);
+  ar & i1;
+  ar & i2;
+  ar & i3;
+  ar & i4;
+}
 
 void Epsilon::exchangeTensorIndices (std::map<char, char> const & exchange_map) {
   auto it = exchange_map.find(i1);

@@ -1,10 +1,20 @@
 #include <sstream>
-#include "Algorithms.hxx"
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/serialization/base_object.hpp>
+#include <boost/serialization/export.hpp>
 
 #include "Eta.hxx"
-#include "eval.hxx"
+BOOST_CLASS_EXPORT(Eta)
 
 Eta::Eta(char const i1, char const i2) : i1(i1), i2(i2) {}
+
+template<class Archive>
+void Eta::serialize (Archive & ar, unsigned int const) {
+  ar & boost::serialization::base_object<Node>(*this);
+  ar & i1;
+  ar & i2;
+}
 
 void Eta::exchangeTensorIndices (std::map<char, char> const & exchange_map) {
   auto it = exchange_map.find(i1);

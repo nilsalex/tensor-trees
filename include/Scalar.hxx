@@ -1,9 +1,13 @@
 #pragma once
+#include <boost/serialization/access.hpp>
+
 #include "Node.hxx"
 
 class Scalar : public Node {
  private:
   std::map<size_t, mpq_class> map;
+
+  friend class boost::serialization::access;
 
  public:
   Scalar () = default;
@@ -35,6 +39,9 @@ class Scalar : public Node {
 
   void substituteVariables (std::map<size_t, size_t> const & subs_map) override;
   void removeVariables (std::set<size_t> const & variables) override;
+
+  template<class Archive>
+  void serialize (Archive & ar, unsigned int const version);
 
   ~Scalar() = default;
 };

@@ -1,12 +1,17 @@
 #pragma once
+#include <boost/serialization/access.hpp>
+
 #include "Node.hxx"
 #include "Tensor.hxx"
 
 class Epsilon : public Tensor {
  private:
-   char i1, i2, i3, i4;
+  char i1, i2, i3, i4;
+
+  friend class boost::serialization::access;
 
  public:
+  Epsilon () = default;
   Epsilon(char const i1, char const i2, char const i3, char const i4);
 
   char order () const override;
@@ -24,6 +29,9 @@ class Epsilon : public Tensor {
   bool equals(Node const * other) const override;
 
   std::unique_ptr<Node> clone () const override;
+
+  template<class Archive>
+  void serialize (Archive & ar, unsigned int const version);
 
   ~Epsilon() = default;
 };

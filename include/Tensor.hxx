@@ -21,5 +21,8 @@ class Tensor : public Node {
   void substituteVariables (std::map<size_t, size_t> const & subs_map) override;
   void removeVariables (std::set<size_t> const & variables) override;
 
+  template<class Archive>
+  void serialize (Archive &, unsigned int const);
+
   ~Tensor() = default;
 };

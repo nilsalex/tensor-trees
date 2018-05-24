@@ -4,6 +4,9 @@
 #include <memory>
 #include <vector>
 
+#include <boost/serialization/unique_ptr.hpp>
+#include <boost/serialization/vector.hpp>
+
 template <class T>
 struct Tree;
 
@@ -45,7 +48,8 @@ struct Tree {
   std::vector<T *> getBranch ();
   std::vector<T const *> getBranch () const;
 
-//  void insertBranch (std::vector<std::unique_ptr<T>> && nodes, size_t const node_number = 0);
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version);
 };
 
 template <class T>
@@ -253,4 +257,12 @@ Tree<T> * Tree<T>::lastLeaf () {
   }
 
   return ret;
+}
+
+template<class T>
+template<class Archive>
+void Tree<T>::serialize(Archive & ar, const unsigned int) {
+  ar & node;
+  ar & parent;
+  ar & forest; 
 }

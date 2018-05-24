@@ -1,4 +1,6 @@
 #pragma once
+#include <boost/serialization/access.hpp>
+
 #include "Node.hxx"
 #include "Tensor.hxx"
 
@@ -6,7 +8,10 @@ class Eta : public Tensor {
  private:
   char i1, i2;
 
+  friend class boost::serialization::access;
+
  public:
+  Eta() = default;
   Eta(char const i1, char const i2);
 
   char order () const override;
@@ -23,8 +28,10 @@ class Eta : public Tensor {
   bool lessThan(Node const * other) const override;
   bool equals(Node const * other) const override;
 
-
   std::unique_ptr<Node> clone () const override;
+
+  template<class Archive>
+  void serialize (Archive & ar, unsigned int const version);
 
   ~Eta() = default;
 };

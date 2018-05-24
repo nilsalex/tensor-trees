@@ -120,21 +120,7 @@ int main () {
 
   evaluateNumerical (tree, function);
 
-/*
-  std::cout << "print tree? [y/n] ";
-
-  char c;
-  std::cin >> c;
-
-  if (c == 'y') {
-    std::cout << std::endl;
-    std::cout << printTree (tree);
-  }
-*/
-
-  std::ofstream of ("area_2nd_kinetic.txt");
-
-  of << printTreeMaple (tree);
+  saveTree (tree, "area_2nd_kinetic.prs");
 
   return 0;
 }

@@ -37,6 +37,8 @@ class Node {
   virtual bool operator> (Node const * other) const;
   virtual bool operator> (Node const & other) const;
 
+  template<class Archive>
+  void serialize (Archive &, unsigned int const) { }
+
   virtual ~Node() = default;
 };
-

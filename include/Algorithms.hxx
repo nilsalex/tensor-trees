@@ -59,6 +59,8 @@ void evaluateNumerical (std::unique_ptr<Tree<Node>> & tree, std::function< void 
 
 bool compareTrees (std::unique_ptr<Tree<Node>> const & tree1, std::unique_ptr<Tree<Node>> const & tree2);
 
-// ********** old **********
+void contractTreeWithEta (std::unique_ptr<Tree<Node>> & tree, char const i1, char const i2);
 
-void redefineVariables (Forest<Node> & forest);
+void saveTree (std::unique_ptr<Tree<Node>> const & tree, std::string const & filename);
+
+std::unique_ptr<Tree<Node>> loadTree (std::string const & filename);
