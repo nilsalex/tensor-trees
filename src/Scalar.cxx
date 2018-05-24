@@ -7,6 +7,7 @@
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/split_free.hpp>
 #include <boost/serialization/map.hpp>
+#include <boost/serialization/string.hpp>
 #include <boost/serialization/export.hpp>
 
 #include "Scalar.hxx"
@@ -21,16 +22,14 @@ namespace serialization {
 
 template<class Archive>
 void save (Archive & ar, const mpq_class & q, unsigned int const) {
-  ar << q.get_num().get_si();
-  ar << q.get_den().get_si();
+  ar << q.get_str(10);
 }
 
 template<class Archive>
 void load (Archive & ar, mpq_class & q, unsigned int const) {
-  long num, den;
-  ar >> num;
-  ar >> den;
-  q = mpq_class (num, den);
+  std::string str;
+  ar >> str;
+  q.set_str(str, 10);
 }
 
 }

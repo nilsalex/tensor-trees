@@ -64,3 +64,5 @@ void contractTreeWithEta (std::unique_ptr<Tree<Node>> & tree, char const i1, cha
 void saveTree (std::unique_ptr<Tree<Node>> const & tree, std::string const & filename);
 
 std::unique_ptr<Tree<Node>> loadTree (std::string const & filename);
+
+bool checkSaveAndLoad (std::unique_ptr<Tree<Node>> const & tree);

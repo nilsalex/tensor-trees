@@ -122,5 +122,11 @@ int main () {
 
   saveTree (tree, "area_2nd_kinetic.prs");
 
+  if (checkSaveAndLoad(tree)) {
+    std::cout << "Tree and saved tree coincide." << std::endl;
+  } else {
+    std::cout << "ERROR! TREE DOES NOT COINCIDE WITH SAVED TREE!" << std::endl;
+  }
+
   return 0;
 }

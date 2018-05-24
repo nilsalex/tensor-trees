@@ -492,3 +492,9 @@ std::unique_ptr<Tree<Node>> loadTree (std::string const & filename) {
   ia >> tree;
   return tree;
 }
+
+bool checkSaveAndLoad (std::unique_ptr<Tree<Node>> const & tree) {
+  saveTree (tree, "check.prs");
+  auto tree2 = loadTree ("check.prs");
+  return (compareTrees (tree, tree2));
+}
