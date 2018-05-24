@@ -123,8 +123,14 @@ bool Epsilon::lessThan(Node const * other) const {
 }
 
 bool Epsilon::equals(Node const * other) const {
-  auto other_eps = static_cast<Epsilon const *> (other);
-  return (i1 == other_eps->i1 && i2 == other_eps->i2 && i3 == other_eps->i3 && i4 == other_eps->i4);
+  if (other == nullptr) {
+    return false;
+  } else if (typeid(*this) != typeid(*other)) {
+    return false;
+  } else {
+    auto other_eps = static_cast<Epsilon const *> (other);
+    return (i1 == other_eps->i1 && i2 == other_eps->i2 && i3 == other_eps->i3 && i4 == other_eps->i4);
+  }
 }
 
 std::unique_ptr<Node> Epsilon::clone () const {

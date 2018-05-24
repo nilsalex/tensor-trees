@@ -26,11 +26,7 @@ bool Node::operator< (Node const * other) const {
 }
 
 bool Node::operator== (Node const * other) const {
-  if (order() != other->order()) {
-    return false;
-  } else {
-    return this->equals(other);
-  }
+  return this->equals(other);
 }
 
 bool Node::operator> (Node const * other) const {

@@ -113,9 +113,14 @@ bool Scalar::lessThan (Node const * other) const {
 }
 
 bool Scalar::equals (Node const * other) const {
-  Scalar const & otherScalar = *(static_cast<Scalar const *>(other));
-
-  return std::equal(map.cbegin(), map.cend(), otherScalar.map.cbegin(), otherScalar.map.cend());
+  if (other == nullptr) {
+    return false;
+  } else if (typeid(*this) != typeid(*other)) {
+    return false;
+  } else {
+    Scalar const & otherScalar = *(static_cast<Scalar const *>(other));
+    return std::equal(map.cbegin(), map.cend(), otherScalar.map.cbegin(), otherScalar.map.cend());
+  }
 }
 
 void Scalar::addOther(Scalar const * other) {

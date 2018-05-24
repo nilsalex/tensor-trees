@@ -86,8 +86,14 @@ bool Eta::lessThan(Node const * other) const {
 }
 
 bool Eta::equals(Node const * other) const {
-  auto other_eta = static_cast<Eta const *> (other);
-  return (i1 == other_eta->i1 && i2 == other_eta->i2);
+  if (other == nullptr) {
+    return false;
+  } else if (typeid(*this) != typeid (*other)) {
+    return false;
+  } else {
+    auto other_eta = static_cast<Eta const *> (other);
+    return (i1 == other_eta->i1 && i2 == other_eta->i2);
+  }
 }
 
 std::unique_ptr<Node> Eta::clone () const {

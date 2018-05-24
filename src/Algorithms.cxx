@@ -210,11 +210,13 @@ void insertBranch (std::unique_ptr<Tree<Node>> & dst, std::vector<Node *> & bran
     return;
   }
 
+  bool const branch_node_is_scalar = (typeid(*(branch[node_number])) == typeid(Scalar));
+
   auto node_it = std::find_if (dst->forest.begin(), dst->forest.end(),
-    [&branch,node_number] (auto & t) {
+    [&branch,branch_node_is_scalar,node_number] (auto & t) {
       if (t->node == nullptr) {
         return false;
-      } else if (t->node->order() == 100 && branch[node_number]->order() == 100) {
+      } else if (branch_node_is_scalar && (typeid(*(t->node)) == typeid(Scalar))) {
         return true;
       } else if (t->node->equals(branch[node_number])){
         return true;
@@ -228,14 +230,12 @@ void insertBranch (std::unique_ptr<Tree<Node>> & dst, std::vector<Node *> & bran
     dst->forest.back()->node = branch[node_number]->clone();
     dst->forest.back()->parent = dst.get();
     insertBranch(dst->forest.back(), branch, node_number + 1);
-  } else if ((*node_it)->node->order() == 100 && branch[node_number]->order() == 100) {
+  } else if (branch_node_is_scalar && (typeid(*((*node_it)->node)) == typeid(Scalar))) {
     static_cast<Scalar *>((*node_it)->node.get())->addOther(static_cast<Scalar *>(branch[node_number]));
     insertBranch (*node_it, branch, node_number + 1);
   } else {
     insertBranch (*node_it, branch, node_number + 1);
   }
-
-//  sortForest(dst->forest);
 }
 
 void removeEmptyBranches (std::unique_ptr<Tree<Node>> & tree) {
