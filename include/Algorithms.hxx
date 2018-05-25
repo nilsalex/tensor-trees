@@ -67,6 +67,8 @@ std::unique_ptr<Tree<Node>> eliminateSecondEta (std::unique_ptr<Tree<Node>> & tr
 
 Forest<Node> contractTreeWithEtaInner (std::unique_ptr<Tree<Node>> & tree, char i1, char i2);
 
+void contractTreeWithEpsilon (std::unique_ptr<Tree<Node>> & tree, char m, char i1, char i2, char i3);
+
 void saveTree (std::unique_ptr<Tree<Node>> const & tree, std::string const & filename);
 
 std::unique_ptr<Tree<Node>> loadTree (std::string const & filename);

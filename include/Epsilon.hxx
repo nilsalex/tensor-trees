@@ -1,4 +1,5 @@
 #pragma once
+#include <tuple>
 #include <boost/serialization/access.hpp>
 
 #include "Node.hxx"
@@ -30,6 +31,8 @@ class Epsilon : public Tensor {
   bool equals(Node const * other) const override;
 
   std::unique_ptr<Node> clone () const override;
+
+  std::tuple<int, char, std::map<char, char>> multiplyWithOther3 (char j1, char j2, char j3) const;
 
   template<class Archive>
   void serialize (Archive & ar, unsigned int const version);

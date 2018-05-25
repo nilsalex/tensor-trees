@@ -586,12 +586,85 @@ std::unique_ptr<Tree<Node>> eliminateSecondEta (std::unique_ptr<Tree<Node>> & tr
     branch[0] = node_cpy.get();
     static_cast<Tensor *>(branch[0])->exchangeTensorIndices({{i1, i_new}});
 
+    sortBranch (branch);
     insertBranch (ret, branch);
 
     it = it->nextLeaf();
   }
 
   return ret;
+}
+
+void contractTreeWithEpsilon (std::unique_ptr<Tree<Node>> & tree, char m, char i1, char i2, char i3) {
+  auto new_tree = std::make_unique<Tree<Node>> ();
+  auto it = tree->firstLeaf ();
+
+  while (it != nullptr) {
+    auto branch = it->getBranch ();
+    auto & type = typeid(*(branch[0]));
+    if (type == typeid(Eta)) {
+      if (std::any_of (branch.cbegin(), branch.cend(),
+           [i1, i2, i3] (auto const & n) {
+             if (typeid (*n) == typeid (Eta)) {
+               auto eta = static_cast<Eta *>(n);
+               int count = 0;
+               if (eta->containsIndex(i1)) { ++count; }
+               if (eta->containsIndex(i2)) { ++count; }
+               if (eta->containsIndex(i3)) { ++count; }
+               if (count == 2) {
+                 return true;
+               } else {
+                 assert (count < 2);
+                 return false;
+               }
+             } else {
+               return false;
+             }
+           })) {
+        // do nothing
+      } else {
+        std::vector<Node *> new_branch;
+        char j1 = 0;
+        char j2 = 0;
+        char j3 = 0;
+        new_branch.push_back (nullptr);
+        std::for_each (branch.begin(), branch.end(),
+            [&j1,&j2,&j3,i1,i2,i3,&new_branch] (auto n) {
+              if (typeid (*n) == typeid (Eta)) {
+                auto eta = static_cast<Eta *>(n);
+                if (eta->containsIndex(i1)) {
+                  assert (j1 == 0);
+                  j1 = eta->getOther (i1);
+                }
+                else if (eta->containsIndex(i2)) {
+                  assert (j2 == 0);
+                  j2 = eta->getOther (i2);
+                }
+                else if (eta->containsIndex(i3)) {
+                  assert (j3 == 0);
+                  j3 = eta->getOther(i3);
+                } else {
+                  new_branch.push_back (n);
+                }
+              } else {
+                new_branch.push_back (n);
+              }
+            });
+        assert (j1 != 0 && j2 != 0 && j3 != 0);
+        assert (branch.size() == new_branch.size() + 2);
+        std::unique_ptr<Node> epsilon = std::make_unique<Epsilon> (m, j1, j2, j3);
+        new_branch[0] = epsilon.get();
+        insertBranch (new_tree, new_branch);
+      }
+    } else if (type == typeid(Epsilon)) {
+
+    } else {
+      assert(false);
+    }
+    it = it->nextLeaf();
+  }
+
+  std::swap (tree, new_tree);
 }
 
 void saveTree (std::unique_ptr<Tree<Node>> const & tree, std::string const & filename) {

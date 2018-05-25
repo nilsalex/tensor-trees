@@ -7,9 +7,10 @@ int main () {
   auto tree = loadTree ("area_2nd_kinetic.prs");
 //  auto tree = buildEpsilonEtaTree ("abcdef");
 
-//  std::cout << printTree (tree) << std::endl;
+  std::cout << printTree (tree) << std::endl;
 
-  contractTreeWithEta (tree, 'c', 'd');
+  contractTreeWithEpsilon (tree, 'm', 'b', 'c', 'd');
+//  contractTreeWithEta (tree, 'j', 'l');
   canonicalizeTree (tree);
 
   std::cout << "contracted tree" << std::endl;
