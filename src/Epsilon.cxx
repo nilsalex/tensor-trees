@@ -149,7 +149,7 @@ std::tuple<int, char, std::map<char, char>> Epsilon::multiplyWithOther3 (char j1
   std::vector<char> contained;
   if (is_contained_j1) { contained.push_back (j1); }
   if (is_contained_j2) { contained.push_back (j2); }
-  if (is_contained_j3) { contained.push_back (j3);}
+  if (is_contained_j3) { contained.push_back (j3); }
 
   if (contained.size() == 0) {
     return {-24, i1, {{j1, i2}, {j2, i3}, {j3, i4}}};
@@ -202,7 +202,7 @@ std::tuple<int, char, std::map<char, char>> Epsilon::multiplyWithOther3 (char j1
         parity *= -1;
       } else {
         assert (std::find (contained.cbegin(), contained.cend(), i_vec[3]) == contained.cend());
-        std::iter_swap (i_vec.begin() + 1, i_vec.end() + 3);
+        std::iter_swap (i_vec.begin() + 1, i_vec.begin() + 3);
         parity *= -1;
       }
     } else if (std::find (contained.cbegin(), contained.cend(), i_vec[1]) == contained.cend()) {
@@ -234,15 +234,47 @@ std::tuple<int, char, std::map<char, char>> Epsilon::multiplyWithOther3 (char j1
     std::vector<char> j_vec {j1, j2, j3};
     int parity = 1;
     if (!is_contained_j1) {
-      // nothing
-    } else if (!is_contained_j2) {
-      j_vec = {j2, j1, j3};
-      parity *= -1;
+      if (!is_contained_j2) {
+        // nothing
+      } else {
+        assert (!is_contained_j3);
+        j_vec = {j1, j3, j2};
+        parity *= -1;
+      }
     } else {
+      assert (!is_contained_j2);
       assert (!is_contained_j3);
-      j_vec = {j3, j1, j2};
+      j_vec = {j2, j3, j1};
     }
-
+    if (std::find (contained.cbegin(), contained.cend(), i_vec[0]) != contained.cend()) {
+      assert (std::find (contained.cbegin(), contained.cend(), i_vec[1]) == contained.cend());
+      assert (std::find (contained.cbegin(), contained.cend(), i_vec[2]) == contained.cend());
+      assert (std::find (contained.cbegin(), contained.cend(), i_vec[3]) == contained.cend());
+      std::iter_swap (i_vec.begin(), i_vec.begin() + 1);
+      std::iter_swap (i_vec.begin() + 1, i_vec.begin() + 2);
+      std::iter_swap (i_vec.begin() + 2, i_vec.begin() + 3);
+      parity *= -1;
+    } else if (std::find (contained.cbegin(), contained.cend(), i_vec[1]) != contained.cend()) {
+      assert (std::find (contained.cbegin(), contained.cend(), i_vec[0]) == contained.cend());
+      assert (std::find (contained.cbegin(), contained.cend(), i_vec[2]) == contained.cend());
+      assert (std::find (contained.cbegin(), contained.cend(), i_vec[3]) == contained.cend());
+      std::iter_swap (i_vec.begin() + 1, i_vec.begin() + 2);
+      std::iter_swap (i_vec.begin() + 2, i_vec.begin() + 3);
+    } else if (std::find (contained.cbegin(), contained.cend(), i_vec[2]) != contained.cend()) {
+      assert (std::find (contained.cbegin(), contained.cend(), i_vec[0]) == contained.cend());
+      assert (std::find (contained.cbegin(), contained.cend(), i_vec[1]) == contained.cend());
+      assert (std::find (contained.cbegin(), contained.cend(), i_vec[3]) == contained.cend());
+      std::iter_swap (i_vec.begin() + 2, i_vec.begin() + 3);
+      parity *= -1;
+    } else if (std::find (contained.cbegin(), contained.cend(), i_vec[3]) != contained.cend()) {
+      assert (std::find (contained.cbegin(), contained.cend(), i_vec[0]) == contained.cend());
+      assert (std::find (contained.cbegin(), contained.cend(), i_vec[1]) == contained.cend());
+      assert (std::find (contained.cbegin(), contained.cend(), i_vec[2]) == contained.cend());
+      // nothing
+    }
+    return { -6 * parity, i_vec[0], {{j_vec[0], i_vec[1]}, {j_vec[1], i_vec[2]}} };
+  } else {
+    assert (false);
+    return {0, 0, {}};
   }
-  return {0, 0, {}};
 }

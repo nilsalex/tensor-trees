@@ -103,7 +103,7 @@ int main () {
     std::cout << "Completed! There are " << eval_res_set.size() << " equations." << std::endl;
   };
 
-  evaluateNumerical (tree, function);
+  reduceNumerical (tree, function);
 
   saveTree (tree, "area_1st_mass.prs");
 

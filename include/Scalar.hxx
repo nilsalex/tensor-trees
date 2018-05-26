@@ -33,6 +33,8 @@ class Scalar : public Node {
 
   void addOther(Scalar const * other);
 
+  void removeZeros ();
+
   bool lessThan (Node const * other) const override;
   bool equals (Node const * other) const override;
   bool isZero () const;

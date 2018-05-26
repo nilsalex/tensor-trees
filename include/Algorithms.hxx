@@ -33,11 +33,15 @@ void sortBranch (std::vector<Node *> & branch);
 
 void sortTreeAndMerge (std::unique_ptr<Tree<Node>> & dst, std::unique_ptr<Tree<Node>> const & src);
 
+void mergeTrees (std::unique_ptr<Tree<Node>> & dst, std::unique_ptr<Tree<Node>> const & src);
+
 void canonicalizeTree (std::unique_ptr<Tree<Node>> & tree);
 
 void insertBranch (std::unique_ptr<Tree<Node>> & dst, std::vector<Node *> & branch, size_t const node_number = 0);
 
 void removeEmptyBranches (std::unique_ptr<Tree<Node>> & tree);
+
+void removeZeroScalars (std::unique_ptr<Tree<Node>> & tree);
 
 void sortForest (Forest<Node> & forest);
 
@@ -57,7 +61,9 @@ void shrinkForest (Forest<Node> & forest);
 
 void setVariablesToZero (std::unique_ptr<Tree<Node>> & tree, std::set<size_t> const & variables);
 
-void evaluateNumerical (std::unique_ptr<Tree<Node>> & tree, std::function< void (std::unique_ptr<Tree<Node>> const &, std::set<std::map<size_t, mpq_class>> &)> fun);
+void solveNumerical (std::unique_ptr<Tree<Node>> & tree, std::function< void (std::unique_ptr<Tree<Node>> const &, std::set<std::map<size_t, mpq_class>> &)> fun);
+
+void reduceNumerical (std::unique_ptr<Tree<Node>> & tree, std::function< void (std::unique_ptr<Tree<Node>> const &, std::set<std::map<size_t, mpq_class>> &)> fun);
 
 bool compareTrees (std::unique_ptr<Tree<Node>> const & tree1, std::unique_ptr<Tree<Node>> const & tree2);
 
@@ -67,7 +73,7 @@ std::unique_ptr<Tree<Node>> eliminateSecondEta (std::unique_ptr<Tree<Node>> & tr
 
 Forest<Node> contractTreeWithEtaInner (std::unique_ptr<Tree<Node>> & tree, char i1, char i2);
 
-void contractTreeWithEpsilon (std::unique_ptr<Tree<Node>> & tree, char m, char i1, char i2, char i3);
+void contractTreeWithEpsilon3 (std::unique_ptr<Tree<Node>> & tree, char m, char i1, char i2, char i3);
 
 void saveTree (std::unique_ptr<Tree<Node>> const & tree, std::string const & filename);
 

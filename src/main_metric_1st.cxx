@@ -101,8 +101,7 @@ int main () {
     std::cout << "Completed! There are " << eval_res_set.size() << " equations." << std::endl;
   };
 
-  evaluateNumerical (tree, function);
-  evaluateNumerical (tree, function);
+  reduceNumerical (tree, function);
 
   std::cout << "print tree? [y/n] ";
 

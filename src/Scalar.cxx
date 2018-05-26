@@ -169,3 +169,13 @@ void Scalar::removeVariables (std::set<size_t> const & variables) {
       this->map.erase(v);
     });
 }
+
+void Scalar::removeZeros () {
+  for (auto it = map.begin(); it != map.end(); ) {
+    if (it->second == 0) {
+      it = map.erase (it);
+    } else {
+      ++it;
+    }
+  }
+}

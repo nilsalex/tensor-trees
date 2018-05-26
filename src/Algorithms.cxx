@@ -207,12 +207,25 @@ void sortTreeAndMerge (std::unique_ptr<Tree<Node>> & dst, std::unique_ptr<Tree<N
   }
 }
 
+void mergeTrees (std::unique_ptr<Tree<Node>> & dst, std::unique_ptr<Tree<Node>> const & src) {
+  auto src_it = src->firstLeaf();
+
+  while (src_it != nullptr) {
+    auto branch = src_it->getBranch();
+
+    insertBranch (dst, branch);
+
+    src_it = src_it->nextLeaf();
+  }
+}
+
 void canonicalizeTree (std::unique_ptr<Tree<Node>> & tree) {
   applyTensorSymmetries (tree);
 
   auto ret = std::make_unique<Tree<Node>>();
   
   sortTreeAndMerge (ret, tree);
+  removeZeroScalars (ret);
   removeEmptyBranches (ret);
   sortTree (ret);
 
@@ -277,6 +290,15 @@ void removeEmptyBranches (std::unique_ptr<Tree<Node>> & tree) {
   return false;
 
   }), tree->forest.end());
+}
+
+void removeZeroScalars (std::unique_ptr<Tree<Node>> & tree) {
+  auto it = tree->firstLeaf();
+
+  while (it != nullptr) {
+    static_cast<Scalar *>(it->node.get())->removeZeros();
+    it = it->nextLeaf();
+  }
 }
 
 bool isTreeSorted (std::unique_ptr<Tree<Node>> const & tree) {
@@ -394,7 +416,46 @@ void setVariablesToZero (std::unique_ptr<Tree<Node>> & tree, std::set<size_t> co
   }
 }
 
-void evaluateNumerical (std::unique_ptr<Tree<Node>> & tree, std::function< void (std::unique_ptr<Tree<Node>> const &, std::set<std::map<size_t, mpq_class>> &)> fun) {
+void solveNumerical (std::unique_ptr<Tree<Node>> & tree, std::function< void (std::unique_ptr<Tree<Node>> const &, std::set<std::map<size_t, mpq_class>> &)> fun) {
+  std::set<std::map<size_t, mpq_class>> eval_res_set;
+  
+  fun (tree, eval_res_set);
+
+  std::set<size_t> var_set = getVariableSet (tree);
+
+  std::cout << "number of coefficients : " << var_set.size() << std::endl;
+
+  std::map<size_t, size_t> var_map;
+  std::set<std::pair<std::pair<size_t, size_t>, mpq_class>> eval_res_mat;
+  std::set<std::pair<std::pair<size_t, size_t>, mpq_class>> eval_res_mat_mapped;
+
+  std::for_each(eval_res_set.cbegin(), eval_res_set.cend(),
+    [row_counter=0,&eval_res_mat] (auto const & m) mutable {
+      std::for_each(m.cbegin(), m.cend(),
+        [&row_counter,&eval_res_mat] (auto const & p) {
+          eval_res_mat.insert(std::make_pair(std::make_pair(row_counter, p.first), p.second));
+        }); 
+      ++row_counter; 
+    }); 
+
+  eval_res_set.clear();
+
+  std::for_each(eval_res_mat.cbegin(), eval_res_mat.cend(),
+    [&eval_res_mat_mapped,&var_map,var=0] (auto const & v) mutable {
+      auto it = var_map.find(v.first.second);
+      if (it == var_map.end()) {
+        var_map.insert(std::make_pair(v.first.second, var));
+        ++var;
+      }
+      eval_res_mat_mapped.insert(std::make_pair(std::make_pair(v.first.first, var_map.at(v.first.second)), v.second));
+    });
+
+  eval_res_mat.clear();
+
+  findDependentVariables (eval_res_mat_mapped, eval_res_mat_mapped.rbegin()->first.first + 1, var_map.size());
+}
+
+void reduceNumerical (std::unique_ptr<Tree<Node>> & tree, std::function< void (std::unique_ptr<Tree<Node>> const &, std::set<std::map<size_t, mpq_class>> &)> fun) {
   std::set<std::map<size_t, mpq_class>> eval_res_set;
   
   fun (tree, eval_res_set);
@@ -595,7 +656,7 @@ std::unique_ptr<Tree<Node>> eliminateSecondEta (std::unique_ptr<Tree<Node>> & tr
   return ret;
 }
 
-void contractTreeWithEpsilon (std::unique_ptr<Tree<Node>> & tree, char m, char i1, char i2, char i3) {
+void contractTreeWithEpsilon3 (std::unique_ptr<Tree<Node>> & tree, char m, char i1, char i2, char i3) {
   auto new_tree = std::make_unique<Tree<Node>> ();
   auto it = tree->firstLeaf ();
 
@@ -657,7 +718,77 @@ void contractTreeWithEpsilon (std::unique_ptr<Tree<Node>> & tree, char m, char i
         insertBranch (new_tree, new_branch);
       }
     } else if (type == typeid(Epsilon)) {
-
+      auto epsilon = static_cast<Epsilon *> (branch[0]);
+      auto mult_res = epsilon->multiplyWithOther3 (i1, i2, i3);
+      auto new_tree_2 = std::make_unique<Tree<Node>>();
+      new_tree_2->forest.emplace_back (std::make_unique<Tree<Node>>());
+      new_tree_2->forest[0]->node = std::make_unique<Eta>(m, std::get<1>(mult_res));
+      new_tree_2->forest[0]->parent = new_tree_2.get();
+      std::for_each (branch.cbegin() + 1, branch.cend(),
+          [&mult_res,&new_tree_2] (auto const & n) {
+            auto leaf = new_tree_2->firstLeaf();
+            if (typeid(*n) == typeid(Scalar)) {
+              auto scalar_clone = n->clone();
+              scalar_clone->multiply (std::get<0>(mult_res));
+              leaf->forest.emplace_back (std::make_unique<Tree<Node>>());
+              std::swap (leaf->forest[0]->node, scalar_clone);
+              leaf->forest[0]->parent = leaf;
+            } else if (typeid(*n) == typeid(Eta)) {
+              auto eta_clone = n->clone();
+              eta_clone->exchangeTensorIndices (std::get<2>(mult_res));
+              leaf->forest.emplace_back (std::make_unique<Tree<Node>>());
+              std::swap (leaf->forest[0]->node, eta_clone);
+              leaf->forest[0]->parent = leaf;
+            } else {
+              assert (false);
+            }
+          });
+      std::vector<char> indices_to_symmetrize;
+      indices_to_symmetrize.push_back (std::get<1>(mult_res));
+      std::transform (std::get<2>(mult_res).cbegin(), std::get<2>(mult_res).cend(),
+          std::back_inserter (indices_to_symmetrize), [] (auto const & p) { return p.second; });
+      auto to_sym_size = indices_to_symmetrize.size();
+      assert (to_sym_size > 0);
+      assert (to_sym_size < 5);
+      if (to_sym_size == 2) {
+        exchangeSymmetrizeTree (new_tree_2, {{indices_to_symmetrize[0], indices_to_symmetrize[1]},
+                                          {indices_to_symmetrize[1], indices_to_symmetrize[0]}}, -1);
+      } else if (to_sym_size == 3) {
+        auto & iv = indices_to_symmetrize;
+        multiExchangeSymmetrizeTree (new_tree_2, 
+            {{{{iv[1], iv[2]}, {iv[2], iv[1]}}, -1},
+             {{{iv[0], iv[1]}, {iv[1], iv[0]}}, -1},
+             {{{iv[0], iv[1]}, {iv[1], iv[2]}, {iv[2], iv[0]}}, 1},
+             {{{iv[0], iv[2]}, {iv[1], iv[0]}, {iv[2], iv[1]}}, 1},
+             {{{iv[0], iv[2]}, {iv[2], iv[0]}}, -1}});
+      } else if (to_sym_size == 4) {
+        auto & iv = indices_to_symmetrize;
+        multiExchangeSymmetrizeTree (new_tree_2, 
+            {{{{iv[2], iv[3]}, {iv[3], iv[2]}}, -1},                                  // 0 1 3 2
+             {{{iv[1], iv[2]}, {iv[2], iv[1]}}, -1},                                  // 0 2 1 3
+             {{{iv[1], iv[2]}, {iv[2], iv[3]}, {iv[3], iv[1]}}, 1},                   // 0 2 3 1
+             {{{iv[1], iv[3]}, {iv[2], iv[1]}, {iv[3], iv[2]}}, 1},                   // 0 3 1 2
+             {{{iv[1], iv[3]}, {iv[3], iv[1]}}, -1},                                  // 0 3 2 1
+             {{{iv[0], iv[1]}, {iv[1], iv[0]}}, -1},                                  // 1 0 2 3 
+             {{{iv[0], iv[1]}, {iv[1], iv[0]}, {iv[2], iv[3]}, {iv[3], iv[2]}}, 1},   // 1 0 3 2
+             {{{iv[0], iv[1]}, {iv[1], iv[2]}, {iv[2], iv[0]}}, 1},                   // 1 2 0 3
+             {{{iv[0], iv[1]}, {iv[1], iv[2]}, {iv[2], iv[3]}, {iv[3], iv[0]}}, -1},  // 1 2 3 0
+             {{{iv[0], iv[1]}, {iv[1], iv[3]}, {iv[2], iv[0]}, {iv[3], iv[2]}}, -1},  // 1 3 0 2
+             {{{iv[0], iv[1]}, {iv[1], iv[3]}, {iv[3], iv[0]}}, 1},                   // 1 3 2 0
+             {{{iv[0], iv[2]}, {iv[1], iv[0]}, {iv[2], iv[1]}}, 1},                   // 2 0 1 3
+             {{{iv[0], iv[2]}, {iv[1], iv[0]}, {iv[2], iv[3]}, {iv[3], iv[1]}}, -1},  // 2 0 3 1
+             {{{iv[0], iv[2]}, {iv[2], iv[0]}}, -1},                                  // 2 1 0 3
+             {{{iv[0], iv[2]}, {iv[2], iv[3]}, {iv[3], iv[0]}}, 1},                   // 2 1 3 0
+             {{{iv[0], iv[2]}, {iv[1], iv[3]}, {iv[2], iv[0]}, {iv[3], iv[1]}}, 1},   // 2 3 0 1
+             {{{iv[0], iv[2]}, {iv[1], iv[3]}, {iv[2], iv[1]}, {iv[3], iv[0]}}, -1},  // 2 3 1 0
+             {{{iv[0], iv[3]}, {iv[1], iv[0]}, {iv[2], iv[1]}, {iv[3], iv[2]}}, -1},  // 3 0 1 2
+             {{{iv[0], iv[3]}, {iv[1], iv[0]}, {iv[3], iv[1]}}, 1},                   // 3 0 2 1
+             {{{iv[0], iv[3]}, {iv[2], iv[0]}, {iv[3], iv[2]}}, 1},                   // 3 1 0 2
+             {{{iv[0], iv[3]}, {iv[3], iv[0]}}, -1},                                  // 3 1 2 0
+             {{{iv[0], iv[3]}, {iv[1], iv[2]}, {iv[2], iv[0]}, {iv[3], iv[1]}}, -1},  // 3 2 0 1
+             {{{iv[0], iv[3]}, {iv[1], iv[2]}, {iv[2], iv[1]}, {iv[3], iv[0]}}, 1}}); // 3 2 1 0
+      }
+      mergeTrees (new_tree, new_tree_2);
     } else {
       assert(false);
     }
