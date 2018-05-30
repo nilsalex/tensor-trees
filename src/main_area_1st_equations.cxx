@@ -41,10 +41,10 @@ int main () {
 
     multiExchangeSymmetrizeTree (tree_eq_abcdmnpq, 
         {{{{'p', 'q'}, {'q', 'p'}}, 1},
-         {{{'a', 'p'}, {'p', 'a'}}, 1},
-         {{{'a', 'p'}, {'p', 'q'}, {'q', 'a'}}, 1},
-         {{{'a', 'q'}, {'p', 'a'}, {'q', 'p'}}, 1},
-         {{{'a', 'q'}, {'q', 'a'}}, 1}} );
+         {{{'m', 'p'}, {'p', 'm'}}, 1},
+         {{{'m', 'p'}, {'p', 'q'}, {'q', 'm'}}, 1},
+         {{{'m', 'q'}, {'p', 'm'}, {'q', 'p'}}, 1},
+         {{{'m', 'q'}, {'q', 'm'}}, 1}} );
   }
 
   auto eval_fun_mass = [] (std::unique_ptr<Tree<Node>> const & t, std::set<std::map<size_t, mpq_class>> & eval_res_set) -> void {
@@ -106,10 +106,10 @@ int main () {
   std::cout << "**************************************" << std::endl;
   
   std::cout << "### mass term equations ###" << std::endl;
-  solveNumerical (tree_eq_abcdmn,   eval_fun_mass);
+  solveNumerical ({{tree_eq_abcdmn,   eval_fun_mass}});
  
   std::cout << std::endl;
   std::cout << "### kinetic term equations ###" << std::endl;
-  solveNumerical (tree_eq_abcdmnpq, eval_fun_kinetic);
+  solveNumerical ({{tree_eq_abcdmnpq, eval_fun_kinetic}});
 
 }

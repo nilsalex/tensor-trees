@@ -179,3 +179,13 @@ void Scalar::removeZeros () {
     }
   }
 }
+
+void Scalar::shiftVariables (int i) {
+  std::map<size_t, mpq_class> map_new;
+  std::transform (map.cbegin(), map.cend(), std::inserter (map_new, map_new.end()),
+      [i] (auto const & p) {
+        return std::make_pair (p.first + i, p.second);
+      });
+
+  std::swap (map, map_new);
+}

@@ -27,3 +27,5 @@ struct eval_mat {
 };
 
 std::set<size_t> findDependentVariables (std::set<std::pair<std::pair<size_t, size_t>, mpq_class>> const & matrix, size_t rows, size_t cols);
+
+std::map<size_t, std::map<size_t, mpq_class>> solveLinearSystem (std::set<std::pair<std::pair<size_t, size_t>, mpq_class>> const & matrix, size_t rows, size_t cols);

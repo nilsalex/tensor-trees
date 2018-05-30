@@ -416,43 +416,51 @@ void setVariablesToZero (std::unique_ptr<Tree<Node>> & tree, std::set<size_t> co
   }
 }
 
-void solveNumerical (std::unique_ptr<Tree<Node>> & tree, std::function< void (std::unique_ptr<Tree<Node>> const &, std::set<std::map<size_t, mpq_class>> &)> fun) {
+void solveNumerical (std::vector<std::pair<std::unique_ptr<Tree<Node>> &, std::function< void (std::unique_ptr<Tree<Node>> const &, std::set<std::map<size_t, mpq_class>> &)>>> const & equations) {
   std::set<std::map<size_t, mpq_class>> eval_res_set;
+  std::set<size_t> var_set;
+
+  std::for_each (equations.cbegin(), equations.cend(),
+      [&eval_res_set,&var_set] (auto const & eq) {
+        auto & fun = eq.second;
+        auto & tree = eq.first;
+
+        var_set.merge (getVariableSet (tree));
+        fun (tree, eval_res_set);
+      });
+
+    std::cout << "number of equations : " << eval_res_set.size() << std::endl;
+    
+    std::cout << "number of coefficients : " << var_set.size() << std::endl;
   
-  fun (tree, eval_res_set);
+    std::map<size_t, size_t> var_map;
+    std::set<std::pair<std::pair<size_t, size_t>, mpq_class>> eval_res_mat;
+    std::set<std::pair<std::pair<size_t, size_t>, mpq_class>> eval_res_mat_mapped;
+  
+    std::for_each(eval_res_set.cbegin(), eval_res_set.cend(),
+      [row_counter=0,&eval_res_mat] (auto const & m) mutable {
+        std::for_each(m.cbegin(), m.cend(),
+          [&row_counter,&eval_res_mat] (auto const & p) {
+            eval_res_mat.insert(std::make_pair(std::make_pair(row_counter, p.first), p.second));
+          }); 
+        ++row_counter; 
+      }); 
+  
+    eval_res_set.clear();
+  
+    std::for_each(eval_res_mat.cbegin(), eval_res_mat.cend(),
+      [&eval_res_mat_mapped,&var_map,var=0] (auto const & v) mutable {
+        auto it = var_map.find(v.first.second);
+        if (it == var_map.end()) {
+          var_map.insert(std::make_pair(v.first.second, var));
+          ++var;
+        }
+        eval_res_mat_mapped.insert(std::make_pair(std::make_pair(v.first.first, var_map.at(v.first.second)), v.second));
+      });
+  
+    eval_res_mat.clear();
 
-  std::set<size_t> var_set = getVariableSet (tree);
-
-  std::cout << "number of coefficients : " << var_set.size() << std::endl;
-
-  std::map<size_t, size_t> var_map;
-  std::set<std::pair<std::pair<size_t, size_t>, mpq_class>> eval_res_mat;
-  std::set<std::pair<std::pair<size_t, size_t>, mpq_class>> eval_res_mat_mapped;
-
-  std::for_each(eval_res_set.cbegin(), eval_res_set.cend(),
-    [row_counter=0,&eval_res_mat] (auto const & m) mutable {
-      std::for_each(m.cbegin(), m.cend(),
-        [&row_counter,&eval_res_mat] (auto const & p) {
-          eval_res_mat.insert(std::make_pair(std::make_pair(row_counter, p.first), p.second));
-        }); 
-      ++row_counter; 
-    }); 
-
-  eval_res_set.clear();
-
-  std::for_each(eval_res_mat.cbegin(), eval_res_mat.cend(),
-    [&eval_res_mat_mapped,&var_map,var=0] (auto const & v) mutable {
-      auto it = var_map.find(v.first.second);
-      if (it == var_map.end()) {
-        var_map.insert(std::make_pair(v.first.second, var));
-        ++var;
-      }
-      eval_res_mat_mapped.insert(std::make_pair(std::make_pair(v.first.first, var_map.at(v.first.second)), v.second));
-    });
-
-  eval_res_mat.clear();
-
-  findDependentVariables (eval_res_mat_mapped, eval_res_mat_mapped.rbegin()->first.first + 1, var_map.size());
+  solveLinearSystem (eval_res_mat_mapped, eval_res_mat_mapped.rbegin()->first.first + 1, var_map.size());
 }
 
 void reduceNumerical (std::unique_ptr<Tree<Node>> & tree, std::function< void (std::unique_ptr<Tree<Node>> const &, std::set<std::map<size_t, mpq_class>> &)> fun) {
@@ -816,4 +824,33 @@ bool checkSaveAndLoad (std::unique_ptr<Tree<Node>> const & tree) {
   saveTree (tree, "check.prs");
   auto tree2 = loadTree ("check.prs");
   return (compareTrees (tree, tree2));
+}
+
+void shiftVariables (std::unique_ptr<Tree<Node>> & tree, int i) {
+  auto it = tree->firstLeaf();
+
+  while (it != nullptr) {
+    assert (typeid(*(it->node.get())) == typeid(Scalar));
+    static_cast<Scalar *>(it->node.get())->shiftVariables (i);
+
+    it = it->nextLeaf();
+  }
+}
+
+void multiplyTreeWithEta (std::unique_ptr<Tree<Node>> & tree, char i1, char i2) {
+  auto new_tree = std::make_unique<Tree<Node>>();
+
+  new_tree->forest.emplace_back (std::make_unique<Tree<Node>>());
+  new_tree->forest.back()->parent = new_tree.get();
+  new_tree->forest.back()->node = std::make_unique<Eta> (i1, i2);
+
+  std::transform (tree->forest.begin(), tree->forest.end(), std::back_inserter (new_tree->forest.back()->forest),
+      [&new_tree] (auto & t) {
+        auto new_subtree = std::make_unique<Tree<Node>>();
+        std::swap (t, new_subtree);
+        new_subtree->parent = new_tree->forest.back().get();
+        return std::move (new_subtree);
+      });
+
+  std::swap (tree, new_tree);
 }

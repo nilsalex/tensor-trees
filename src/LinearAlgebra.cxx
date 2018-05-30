@@ -48,32 +48,13 @@ std::set<size_t> findDependentVariables (std::set<std::pair<std::pair<size_t, si
   MatrixXq mq(cols, rows);
 
   std::for_each(matrix.cbegin(), matrix.cend(),
-    [&mq] (auto const & v) mutable {
+    [&mq] (auto const & v) {
       mq (v.first.second, v.first.first) = v.second;
     });
 
   Eigen::FullPivLU<MatrixXq> lu_decompq(mq);
 
   std::cout << "rank of the system : " << lu_decompq.rank() << std::endl;
-  
-/*
-  MatrixXq kq = lu_decompq.kernel();
-
-  std::set<size_t> ret; 
-
-  for (int column_counter = 0; column_counter < kq.cols(); ++column_counter) {
-    for (int row_counter = kq.rows() - 1; row_counter >= 0; --row_counter) {
-      if (kq(row_counter, column_counter) == 0 ) {
-        continue;
-      } else if (std::find(ret.begin(), ret.end(), row_counter) != ret.end()) {
-        continue;
-      } else {
-        ret.insert(row_counter);
-        break;
-      }
-    }
-  }
-*/
 
   std::set<size_t> ret;
   VectorXq vector = VectorXq::Zero (cols);
@@ -88,4 +69,22 @@ std::set<size_t> findDependentVariables (std::set<std::pair<std::pair<size_t, si
   }
 
   return ret;
+}
+
+std::map<size_t, std::map<size_t, mpq_class>> solveLinearSystem (std::set<std::pair<std::pair<size_t, size_t>, mpq_class>> const & matrix, size_t rows, size_t cols) {
+  MatrixXq mq (rows, cols);
+
+  std::for_each (matrix.cbegin(), matrix.cend(),
+      [&mq] (auto const & v) {
+        mq (v.first.first, v.first.second) = v.second;
+      });
+
+  Eigen::FullPivLU<MatrixXq> lu_decompq(mq);
+
+  std::cout << "rank of the system : " << lu_decompq.rank() << std::endl;
+
+  std::cout << lu_decompq.kernel() << std::endl;
+
+  return {};
+
 }

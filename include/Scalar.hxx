@@ -31,6 +31,8 @@ class Scalar : public Node {
   std::set<size_t> getVariableSet () const override;
   std::map<size_t, mpq_class> const * getCoefficientMap () const override;
 
+  void shiftVariables (int i);
+
   void addOther(Scalar const * other);
 
   void removeZeros ();
