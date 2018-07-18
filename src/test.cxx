@@ -15,6 +15,7 @@
 #include "Indices.hxx"
 
 int main () {
+/*
 //  auto tree = buildEpsilonEtaTree ("abcdefghijklpq");
   auto tree = loadTree ("area_2nd_kinetic.prs");
 
@@ -23,6 +24,31 @@ int main () {
   canonicalizeTree (tree);
 
   std::cout << printTree (tree);
+*/
+  auto tree = buildEpsilonEtaTree ("abcdefghijklmnpq");
+
+  std::vector<std::pair<std::map<char, char>, int>> exchange_symmetries = {
+    {{{'a', 'b'}, {'b', 'a'}}, -1},
+    {{{'c', 'd'}, {'d', 'c'}}, -1},
+    {{{'e', 'f'}, {'f', 'e'}}, -1},
+    {{{'g', 'h'}, {'h', 'g'}}, -1},
+    {{{'i', 'j'}, {'j', 'i'}}, -1},
+    {{{'k', 'l'}, {'l', 'k'}}, -1},
+    {{{'m', 'n'}, {'n', 'm'}}, -1},
+    {{{'p', 'q'}, {'q', 'p'}}, -1},
+    {{{'a', 'c'}, {'b', 'd'}, {'c', 'a'}, {'d', 'b'}}, 1},
+    {{{'e', 'g'}, {'f', 'h'}, {'g', 'e'}, {'h', 'f'}}, 1},
+    {{{'i', 'k'}, {'j', 'l'}, {'k', 'i'}, {'l', 'j'}}, 1},
+    {{{'m', 'p'}, {'n', 'q'}, {'p', 'm'}, {'q', 'n'}}, 1}
+  };
+
+  std::for_each(exchange_symmetries.cbegin(), exchange_symmetries.cend(),
+    [&tree,n=0,&exchange_symmetries] (auto const & p) mutable {
+      std::cout << "Applying exchange symmetry " << ++n << " out of " << exchange_symmetries.size() << " ..." << std::endl;
+      exchangeSymmetrizeTree (tree, p.first, p.second);
+      redefineScalarsSym (tree);
+      std::cout << "... applied." << std::endl;
+    });
 /*
   auto tree = std::make_unique<Tree<Node>>();
 

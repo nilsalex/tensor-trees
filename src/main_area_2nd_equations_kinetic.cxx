@@ -130,7 +130,7 @@ std::unique_ptr<Tree<Node>> secondOrderEquation_2 () {
   tree_sum.reset();
   tree_sum_2.reset();
 
-  exchangeSymmetrizeTree (tree_M_abcdijklpm, {{'p', 'q'}, {'q', 'p'}}, 1);
+  exchangeSymmetrizeTree (tree_M_abcdijklpm, {{'p', 'm'}, {'m', 'p'}}, 1);
 
   return std::move (tree_M_abcdijklpm);
 }
@@ -180,21 +180,26 @@ std::unique_ptr<Tree<Node>> secondOrderEquation_3 () {
   tree_M_mbcdijklpq.reset();
   tree_M_abcdijklpq.reset();
 
-  auto tree_Q_abcdmfnhijklpq = loadTree ("area_2nd_kinetic.prs");
-  shiftVariables (tree_Q_abcdmfnhijklpq, first_order_var_num);
-  auto tree_Q_abcdmfghijklpq = copyTree (tree_Q_abcdmfnhijklpq);
+  auto tree_Q_abcdijklmfnhpq = loadTree ("area_2nd_kinetic.prs");
+  shiftVariables (tree_Q_abcdijklmfnhpq, first_order_var_num);
+  auto tree_Q_abcdijklmfghpq = copyTree (tree_Q_abcdijklmfnhpq);
 
-  exchangeTensorIndices (tree_Q_abcdmfnhijklpq, {{'e', 'm'}, {'g', 'n'}});
-  exchangeTensorIndices (tree_Q_abcdmfghijklpq, {{'e', 'm'}});
+  exchangeTensorIndices (tree_Q_abcdijklmfnhpq, {{'e', 'i'}, {'f', 'j'}, {'g', 'k'}, {'h', 'l'},
+                                                 {'i', 'm'}, {'j', 'f'}, {'k', 'n'}, {'l', 'h'}});
+  exchangeTensorIndices (tree_Q_abcdijklmfghpq, {{'e', 'i'}, {'f', 'j'}, {'g', 'k'}, {'h', 'l'},
+                                                 {'i', 'm'}, {'j', 'f'}, {'k', 'g'}, {'l', 'h'}});
 
-  multiplyTree (tree_Q_abcdmfnhijklpq, 8);
-  multiplyTree (tree_Q_abcdmfghijklpq, -4);
+  multiplyTree (tree_Q_abcdijklmfnhpq, 8);
+  multiplyTree (tree_Q_abcdijklmfghpq, -4);
 
-  contractTreeWithEta (tree_Q_abcdmfnhijklpq, 'f', 'h');
-  contractTreeWithEpsilon3 (tree_Q_abcdmfghijklpq, 'n', 'f', 'g', 'h');
+  contractTreeWithEta (tree_Q_abcdijklmfnhpq, 'f', 'h');
+  contractTreeWithEpsilon3 (tree_Q_abcdijklmfghpq, 'n', 'f', 'g', 'h');
 
-  mergeTrees (tree_eqn, tree_Q_abcdmfnhijklpq);
-  mergeTrees (tree_eqn, tree_Q_abcdmfghijklpq);
+  exchangeSymmetrizeTree (tree_Q_abcdijklmfnhpq, {{'p', 'q'}, {'q', 'p'}}, 1);
+  exchangeSymmetrizeTree (tree_Q_abcdijklmfghpq, {{'p', 'q'}, {'q', 'p'}}, 1);
+
+  mergeTrees (tree_eqn, tree_Q_abcdijklmfnhpq);
+  mergeTrees (tree_eqn, tree_Q_abcdijklmfghpq);
 
   return std::move (tree_eqn);
 }
@@ -229,12 +234,12 @@ void eval_fun_1st (std::unique_ptr<Tree<Node>> const & t, std::set<std::map<size
 void eval_fun_2nd (std::unique_ptr<Tree<Node>> const & t, std::set<std::map<size_t, mpq_class>> & eval_res_set) {
   std::pair<std::pair<char, char>, std::pair<char, char>> area_indices_1 {{0, 1}, {0, 1}};
   std::pair<std::pair<char, char>, std::pair<char, char>> area_indices_2 {{0, 1}, {0, 1}};
-  std::pair<char, char> indices_pq {0, 0};
+  std::pair<char, char> indices_pm {0, 0};
 
   do {
     do {
       do {
-        for (char i_m = 0; i_m < 4; ++i_m) {
+        for (char i_q = 0; i_q < 4; ++i_q) {
           for (char i_n = 0; i_n < 4; ++i_n) {
             auto eval_res_tmp = evaluateTree (t, {
                   {'a', area_indices_1.first.first},
@@ -245,9 +250,9 @@ void eval_fun_2nd (std::unique_ptr<Tree<Node>> const & t, std::set<std::map<size
                   {'j', area_indices_2.first.second},
                   {'k', area_indices_2.second.first},
                   {'l', area_indices_2.second.second},
-                  {'p', indices_pq.first},
-                  {'q', indices_pq.second},
-                  {'m', i_m},
+                  {'p', indices_pm.first},
+                  {'q', i_q},
+                  {'m', indices_pm.second},
                   {'n', i_n}
                 });
             if (!eval_res_tmp.empty()) {
@@ -257,22 +262,22 @@ void eval_fun_2nd (std::unique_ptr<Tree<Node>> const & t, std::set<std::map<size
         }
       } while (nextAreaIndices (area_indices_1));
     } while (nextAreaIndices (area_indices_2));
-   } while (nextIndexPairSymmetric (indices_pq));
+   } while (nextIndexPairSymmetric (indices_pm));
 }
 
 int main () {
 
-  auto tree_eq_1st = firstOrderEquation ();
+//  auto tree_eq_1st = firstOrderEquation ();
 
   auto tree_eq_2nd_1 = secondOrderEquation_1 ();
-  auto tree_eq_2nd_2 = secondOrderEquation_2 ();
-  auto tree_eq_2nd_3 = secondOrderEquation_3 ();
+//  auto tree_eq_2nd_2 = secondOrderEquation_2 ();
+//  auto tree_eq_2nd_3 = secondOrderEquation_3 ();
 
   solveNumerical ({
-      {tree_eq_1st,   eval_fun_1st},
+//      {tree_eq_1st,   eval_fun_1st},
       {tree_eq_2nd_1, eval_fun_2nd},
-      {tree_eq_2nd_2, eval_fun_2nd},
-      {tree_eq_2nd_3, eval_fun_2nd}
+//      {tree_eq_2nd_2, eval_fun_2nd},
+//      {tree_eq_2nd_3, eval_fun_2nd}
       });
 
   return 0;

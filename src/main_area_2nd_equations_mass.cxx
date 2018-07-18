@@ -126,6 +126,9 @@ int main () {
   std::cout << "**************************************" << std::endl;
 
   std::cout << "### second order equations ###" << std::endl;
-  solveNumerical ({{tree_eq_abcdmn, eval_fun_1st}, {tree_eq_abcdijklmn, eval_fun}});
+  solveNumerical ({
+//      {tree_eq_abcdmn, eval_fun_1st},
+      {tree_eq_abcdijklmn, eval_fun}
+  });
 
 }
