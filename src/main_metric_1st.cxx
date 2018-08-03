@@ -22,8 +22,9 @@ int main () {
   std::vector<std::pair<std::map<char, char>, int>> exchange_symmetries = {
     {{{'a', 'b'}, {'b', 'a'}}, 1},
     {{{'c', 'd'}, {'d', 'c'}}, 1},
-    {{{'a', 'c'}, {'b', 'd'}, {'c', 'a'}, {'d', 'b'}}, 1},
-    {{{'p', 'q'}, {'q', 'p'}}, 1}
+//    {{{'a', 'c'}, {'b', 'd'}, {'c', 'a'}, {'d', 'b'}}, 1},
+//    {{{'p', 'q'}, {'q', 'p'}}, 1}
+    {{{'a', 'c'}, {'b', 'd'}, {'p', 'q'}, {'c', 'a'}, {'d', 'b'}, {'q', 'p'}}, 1}
   };
 
   std::cout << "################################" << std::endl;
@@ -102,6 +103,8 @@ int main () {
   };
 
   reduceNumerical (tree, function);
+
+  saveTree (tree, "metric_1st_kinetic.prs");
 
   std::cout << "print tree? [y/n] ";
 
