@@ -1,102 +1,62 @@
+#include <iostream>
+#include <algorithm>
+#include <utility>
+#include <map>
+#include <set>
+#include <vector>
+
 #include "Indices.hxx"
 
-#include <gmpxx.h>
+typedef std::vector<int> T;
 
-#include <algorithm>
-#include <map>
-#include <utility>
-#include <set>
-#include <iostream>
+std::vector<T> permutations_A {
+  {0, 1, 2, 3},
+  {1, 0, 2, 3},
+  {0, 1, 3, 2},
+  {1, 0, 3, 2},
+  {2, 3, 0, 1},
+  {3, 2, 0, 1},
+  {2, 3, 1, 0},
+  {3, 2, 1, 0}
+};
 
-typedef int Variable;
+std::vector<T> permutations_B {
+  {0, 3, 1, 2},
+  {1, 3, 0, 2},
+  {0, 2, 1, 3},
+  {1, 2, 0, 3},
+  {2, 1, 3, 0},
+  {3, 1, 2, 0},
+  {2, 0, 3, 1},
+  {3, 0, 2, 1},
+  {0, 3, 2, 1},
+  {1, 3, 2, 0},
+  {0, 2, 3, 1},
+  {1, 2, 3, 0},
+  {2, 1, 0, 3},
+  {3, 1, 0, 2},
+  {2, 0, 1, 3},
+  {3, 0, 1, 2}
+};
 
-typedef std::map<Variable, mpq_class> Equation;
+std::pair<int, int> evaluate (T const & t1, T const & t2) {
+  std::pair<int, int> ret {0, 0};
 
-std::set<int> getZeroVars (std::set<Equation> const & equations) {
-  std::set<int> ret;
+  std::for_each (permutations_A.cbegin(), permutations_A.cend(),
+    [&ret,&t1,&t2] (auto const & p) {
+      if (t1 == T {t2[p[0]], t2[p[1]], t2[p[2]], t2[p[3]]}) {
+        ret.first += 1;
+      }
+    });
 
-  std::for_each (equations.cbegin(), equations.cend(),
-    [&ret] (auto const & equation) {
-      if (equation.size() == 1) {
-        ret.insert(equation.begin()->first);
+  std::for_each (permutations_B.cbegin(), permutations_B.cend(),
+    [&ret,&t1,&t2] (auto const & p) {
+      if (t1 == T {t2[p[0]], t2[p[1]], t2[p[2]], t2[p[3]]}) {
+        ret.second += 1;
       }
     });
 
   return ret;
-}
-
-std::set<Equation> getReducedEquations (std::set<Equation> const & equations, std::set<int> const & zero_vars) {
-  std::set<Equation> ret;
-
-  std::for_each (equations.cbegin(), equations.cend(),
-    [&ret,&zero_vars] (auto const & equation) {
-      Equation new_eq;
-
-      std::for_each (equation.cbegin(), equation.cend(),
-        [&new_eq, &zero_vars] (auto const & term) {
-          if (zero_vars.find(term.first) == zero_vars.cend()) {
-            new_eq.insert(term);
-          }
-        });
-      if (new_eq.size() > 0) {
-        ret.insert(new_eq);
-      }
-    });
-
-  return ret;
-}
-
-void printEquations (std::set<Equation> const & equations) {
-  std::for_each (equations.cbegin(), equations.cend(),
-    [] (auto const & equation) {
-      printEquation(equation);
-      std::cout << std::endl;
-    });
-}
-
-void printEquation (Equation const & equation) {
-  std::for_each (equation.cbegin(), equation.cend(),
-    [] (auto const & term) {
-      if (term.second >= 0 ) {
-        std::cout << " + ";
-      } else {
-        std::cout << " ";
-      }
-      std::cout << term.second << " * M_" << term.first;
-    });
-}
-
-void normalize (Equation & equation) {
-  std::for_each (equation.begin(), equation.end(),
-    [c=equation.begin()->second] (auto & term) {
-      if (term.second > 8) {
-        throw(0);
-      }
-      term.second = term.second / c;
-    });
-}
-
-void removeZeros (Equation & equation) {
-  for (auto it = equation.begin(); it != equation.end(); ) {
-    if (it->second == 0) {
-      it = equation.erase(it);
-    } else {
-      ++it;
-    }
-  }
-}
-
-void updateOrInsert (std::pair<Variable, mpq_class> const & term, Equation & equation) {
-                auto it = std::find_if (equation.begin(), equation.end(),
-                  [&term] (auto & t) {
-                    return (t.first == term.first);
-                  });
-
-                if (it == equation.end()) {
-                  equation.insert(term);
-                } else {
-                  it->second += term.second;
-                }
 }
 
 int getVariableNumber (int a, int b, int p, int q, int e, int f, int g, int h) {
@@ -124,8 +84,10 @@ int getVariableNumber (int a, int b, int p, int q, int e, int f, int g, int h) {
   return (h + 4 * g + 16 * f + 64 * e + 256 * q + 1024 * p + 4096 * b + 16384 * a);
 }
 
-std::set<int> getVariablesNotContained(std::set<Equation> const & equations) {
-  std::set<int> ret;
+int main () {
+
+  std::map<int, std::pair<int, int>> components;
+  std::set<int> zero_components;
 
   std::pair<char, char> pair_sym_ab { 0, 0 };
   std::pair<char, char> pair_sym_pq { 0, 0 };
@@ -136,7 +98,6 @@ std::set<int> getVariablesNotContained(std::set<Equation> const & equations) {
     do {
       do {
         do {
-
           char const & a = pair_sym_ab.first;
           char const & b = pair_sym_ab.second;
           char const & p = pair_sym_pq.first;
@@ -146,176 +107,33 @@ std::set<int> getVariablesNotContained(std::set<Equation> const & equations) {
           char const & g = pair_sym_gh.first;
           char const & h = pair_sym_gh.second;
 
-          int var = getVariableNumber(a, b, p , q, e, f, g, h);
-          bool var_found = false;
+          auto pair = evaluate ( {a, b, p, q}, {e, f, g, h} );
+          int var = getVariableNumber (a, b, p, q, e, f, g, h);
 
-          for (auto it_eq = equations.cbegin(); it_eq != equations.cend(); ++it_eq) {
-            auto it_term = std::find_if (it_eq->cbegin(), it_eq->cend(),
-              [var] (auto const & term) {
-                return (term.first == var);
-              });
-            
-            if (it_term != it_eq->cend()) {
-              var_found = true;
-              break;
-            }
+          if (pair == std::make_pair(0, 0)) {
+            zero_components.insert(var);
+          } else {
+            components.insert(std::make_pair(var, pair));
           }
 
-          if (!var_found) {
-            ret.insert(var);
-          }
         } while (nextIndexPairSymmetric(pair_sym_ab));
       } while (nextIndexPairSymmetric(pair_sym_pq));
     } while (nextIndexPairSymmetric(pair_sym_ef));
   } while (nextIndexPairSymmetric(pair_sym_gh));
 
-  return ret;
-}
-
-int main () {
-
-  std::set<Equation> equations;
-
-  std::pair<char, char> pair_sym_ab { 0, 0 };
-  std::pair<char, char> pair_sym_pq { 0, 0 };
-  std::pair<char, char> pair_sym_ef { 0, 0 };
-  std::pair<char, char> pair_sym_gh { 0, 0 };
-
-  do {
-    do {
-      do {
-        do {
-          for (char m = 0; m < 4; ++m) {
-            for (char n = 0; n < 4; ++n) {
-
-              char const & a = pair_sym_ab.first;
-              char const & b = pair_sym_ab.second;
-              char const & p = pair_sym_pq.first;
-              char const & q = pair_sym_pq.second;
-              char const & e = pair_sym_ef.first;
-              char const & f = pair_sym_ef.second;
-              char const & g = pair_sym_gh.first;
-              char const & h = pair_sym_gh.second;
-
-              Equation equation;
-              
-              std::pair<Variable, mpq_class> term;
-              
-              // delta m e
-              if (m == e) {
-                term = {getVariableNumber (a, b,
-                                           p, q,
-                                           n, f,
-                                           g, h),
-                        1};
-                equation.insert(term);
-              }
-
-              // delta m g
-              if (m == g) {
-                term = {getVariableNumber (a, b,
-                                           p, q,
-                                           n, h,
-                                           e, f),
-                        1};
-                updateOrInsert (term, equation);
-              }
-
-              // delta m f 
-              if (m == f) {
-                term = {getVariableNumber (a, b,
-                                           p, q,
-                                           n, e,
-                                           g, h),
-                        1};
-                updateOrInsert (term, equation);
-              }
-
-              // delta m h
-              if (m == h) {
-                term = {getVariableNumber (a, b,
-                                           p, q,
-                                           n, g,
-                                           e, f),
-                        1};
-                updateOrInsert (term, equation);
-              }
-
-              // delta b n 
-              if (n == b) {
-                term = { getVariableNumber (a, m,
-                                            p, q,
-                                            e, f,
-                                            g, h),
-                        -1};
-                updateOrInsert (term, equation);
-              }
-
-              // delta a n
-              if (n == a) {
-                term = { getVariableNumber (b, m,
-                                            p, q,
-                                            e, f,
-                                            g, h),
-                        -1};
-                updateOrInsert (term, equation);
-              }
-
-              // delta q n
-              if (n == q) {
-                term = {getVariableNumber (a, b,
-                                           p, m,
-                                           e, f,
-                                           g, h),
-                        -1};
-                updateOrInsert (term, equation);
-              }
-
-              // delta p n
-              if (n == p) {
-                term = {getVariableNumber (a, b,
-                                           q, m,
-                                           e, f,
-                                           g, h),
-                        -1};
-                updateOrInsert (term, equation);
-              }
-
-              removeZeros (equation);
-
-              if (equation.size() > 0) {
-                normalize (equation);
-                equations.insert(equation);
-              }
-
-            }
-          }
-        } while (nextIndexPairSymmetric(pair_sym_ab));
-      } while (nextIndexPairSymmetric(pair_sym_pq));
-    } while (nextIndexPairSymmetric(pair_sym_ef));
-  } while (nextIndexPairSymmetric(pair_sym_gh));
-
-  printEquations (equations);
-
-/*
-  auto not_contained = getVariablesNotContained(equations);
-
-  std::for_each (not_contained.cbegin(), not_contained.cend(),
-    [] (auto const & v) {
-      std::cout << v << std::endl;
+  std::for_each (components.cbegin(), components.cend(),
+    [] (auto const & c) {
+      if (c.second.first == 0) {
+        std::cout << "M_" << c.first << " = " << c.second.second << " B" << std::endl;
+      } else if (c.second.second == 0) {
+        std::cout << "M_" << c.first << " = " << c.second.first << " A" << std::endl;
+      } else {
+        std::cout << "M_" << c.first << " = " << c.second.first << " A + " << c.second.second << " B" << std::endl;
+      }
     });
-*/
-  auto zero_vars = getZeroVars (equations);
 
-  auto equations_reduced_1 = getReducedEquations (equations, zero_vars);
+  std::cout << zero_components.size() << std::endl;
+  std::cout << components.size() << std::endl;
 
-  std::cout << "#########################################################" << std::endl;
-  std::cout << "##########   reduced equations  ########################" << std::endl;
-  std::cout << "#########################################################" << std::endl;
-
-  printEquations (equations_reduced_1);
-
-  std::cout << zero_vars.size() << std::endl;
-  std::cout << equations.size() << std::endl;
-  std::cout << equations_reduced_1.size() << std::endl;
+  return 0;
 }
