@@ -20,10 +20,9 @@ void eval_fun (std::unique_ptr<Tree<Node>> const & t, std::set<std::map<size_t, 
   std::pair<std::pair<char, char>, std::pair<char, char>> area_indices_1 {{0, 1}, {0, 1}};
   std::pair<std::pair<char, char>, std::pair<char, char>> area_indices_2 {{0, 1}, {0, 1}};
   std::pair<char, char> metric_indices_1 {0, 0};
-  std::pair<char, char> metric_indices_2 {0, 0};
 
   std::cout << "Evaluating indices." << std::endl;
-  std::cout << "Number of different combinations : " << 21 * 21 * 10 * 10 << std::endl;
+  std::cout << "Number of different combinations : " << 21 * 21 * 10 << std::endl;
   std::cout << "progress : 0 %" << std::flush;
 
   int counter = 0;
@@ -32,7 +31,6 @@ void eval_fun (std::unique_ptr<Tree<Node>> const & t, std::set<std::map<size_t, 
   do {
     do {
       do {
-        do {
           std::map<char, char> eval_map {
             {'a', area_indices_1.first.first},
             {'b', area_indices_1.first.second},
@@ -43,16 +41,14 @@ void eval_fun (std::unique_ptr<Tree<Node>> const & t, std::set<std::map<size_t, 
             {'g', area_indices_2.second.first},
             {'h', area_indices_2.second.second},
             {'i', metric_indices_1.first},
-            {'j', metric_indices_1.second},
-            {'k', metric_indices_2.first},
-            {'l', metric_indices_2.second}
+            {'j', metric_indices_1.second}
           };
           auto eval_res_tmp = evaluateTree (t, eval_map);
           if (!eval_res_tmp.empty()) {
             eval_res_set.insert (std::move(eval_res_tmp));
           }
           ++counter;
-          int _progress = (100 * counter) / (21 * 21 * 10 * 10);
+          int _progress = (100 * counter) / (21 * 21 * 10);
           if (_progress > progress) {
             progress = _progress;
             std::cout << "\r";
@@ -60,15 +56,14 @@ void eval_fun (std::unique_ptr<Tree<Node>> const & t, std::set<std::map<size_t, 
           }
         } while (nextAreaIndices(area_indices_2));
       } while (nextAreaIndices(area_indices_1));
-    } while (nextIndexPairSymmetric (metric_indices_2));
-  } while (nextIndexPairSymmetric (metric_indices_1));
+    } while (nextIndexPairSymmetric (metric_indices_1));
 
   std::cout << std::endl;
   std::cout << "Completed! There are " << eval_res_set.size() << " equations." << std::endl;
 }
 
 int main () {
-  std::string indices {"abcdefghijkl"};
+  std::string indices {"abcdefghij"};
 
   std::vector<std::pair<std::map<char, char>, int>> exchange_symmetries = {
     {{{'a', 'b'}, {'b', 'a'}}, -1},
@@ -76,11 +71,8 @@ int main () {
     {{{'e', 'f'}, {'f', 'e'}}, -1},
     {{{'g', 'h'}, {'h', 'g'}}, -1},
     {{{'i', 'j'}, {'j', 'i'}}, 1},
-    {{{'k', 'l'}, {'l', 'k'}}, 1},
     {{{'a', 'c'}, {'b', 'd'}, {'c', 'a'}, {'d', 'b'}}, 1},
-    {{{'e', 'g'}, {'f', 'h'}, {'g', 'e'}, {'l', 'f'}}, 1},
-    {{{'a', 'e'}, {'b', 'f'}, {'c', 'g'}, {'d', 'h'}, {'i', 'k'}, {'j', 'l'},
-      {'e', 'a'}, {'f', 'b'}, {'g', 'c'}, {'h', 'd'}, {'k', 'i'}, {'l', 'j'}}, 1}
+    {{{'e', 'g'}, {'f', 'h'}, {'g', 'e'}, {'l', 'f'}}, 1}
   };
 
   std::cout << "################################" << std::endl;
@@ -117,7 +109,7 @@ int main () {
 
   reduceNumerical (tree, eval_fun);
 
-  saveTree (tree, "ansatz_AIBJ.prs");
+  saveTree (tree, "ansatz_ABI.prs");
 
   return 0;
 }
