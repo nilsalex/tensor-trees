@@ -92,10 +92,11 @@ std::unique_ptr<Tree<Node>> EtaBuilder::buildTree (std::string const & indices, 
 
 std::unique_ptr<Tree<Node>> EpsilonBuilder::buildTree (std::string const & indices, Tree<Node> * parent) {
   int order = indices.size();
+  auto tree = std::make_unique<Tree<Node>> ();
 
+  if (order > 3) {
   int trees = (order * (order - 1) * (order - 2) * (order - 3)) / 24;
   auto strings = pickEpsilon (indices);
-  auto tree = std::make_unique<Tree<Node>> ();
   tree->parent = parent;
   tree->forest = Forest<Node> (trees);
   std::transform (strings.cbegin(), strings.cend(), tree->forest.begin(),
@@ -106,6 +107,7 @@ std::unique_ptr<Tree<Node>> EpsilonBuilder::buildTree (std::string const & indic
       leaf_counter = etaBuilder.get_leaf_counter();
       return subtree;
     });
+  }
   return tree;
 }
 

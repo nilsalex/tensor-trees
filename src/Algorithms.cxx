@@ -407,6 +407,15 @@ void substituteVariables (std::unique_ptr<Tree<Node>> & tree, std::map<size_t, s
   }
 }
 
+void substituteWithScalars (std::unique_ptr<Tree<Node>> & tree, std::map<size_t, Scalar> const & subs_map) {
+  auto leaf_it = tree->firstLeaf();
+
+  while (leaf_it != nullptr) {
+    dynamic_cast<Scalar*>(leaf_it->node.get())->substituteWithScalars (subs_map);
+    leaf_it = leaf_it->nextLeaf();
+  }
+}
+
 void setVariablesToZero (std::unique_ptr<Tree<Node>> & tree, std::set<size_t> const & variables) {
   auto leaf_it = tree->firstLeaf();
 
@@ -442,6 +451,7 @@ void solveNumerical (std::vector<std::pair<std::unique_ptr<Tree<Node>> &, std::f
         std::for_each(m.cbegin(), m.cend(),
           [&row_counter,&eval_res_mat] (auto const & p) {
             eval_res_mat.insert(std::make_pair(std::make_pair(row_counter, p.first), p.second));
+            std::cout << "(" << row_counter + 1 << ", " << p.first << ") = " << p.second << "," << std::endl;
           }); 
         ++row_counter; 
       }); 

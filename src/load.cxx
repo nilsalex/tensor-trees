@@ -12,8 +12,9 @@ int main (int argc, char * argv []) {
 
   auto tree = loadTree (argv[1]);
 
-  std::cout << "Tree loaded. Hit return to exit.";
-  std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+//  std::cout << "Tree loaded. Hit return to exit.";
+//  std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  std::cout << printTree(tree) << std::endl;
 
   return 0;
 }

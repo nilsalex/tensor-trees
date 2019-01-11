@@ -14,6 +14,8 @@ class Scalar : public Node {
 
   Scalar (size_t variable, mpq_class const & fraction);
 
+  Scalar (std::map<size_t, mpq_class> const & map);
+
   Scalar (Scalar const & other);
 
   char order () const override;
@@ -43,6 +45,8 @@ class Scalar : public Node {
 
   void substituteVariables (std::map<size_t, size_t> const & subs_map) override;
   void removeVariables (std::set<size_t> const & variables) override;
+
+  void substituteWithScalars (std::map<size_t, Scalar> const & subs_map);
 
   template<class Archive>
   void serialize (Archive & ar, unsigned int const version);

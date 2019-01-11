@@ -2,6 +2,7 @@
 #include <gmpxx.h>
 #include <string>
 
+#include "Scalar.hxx"
 #include "Tree.hxx"
 #include "Node.hxx"
 

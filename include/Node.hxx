@@ -6,6 +6,7 @@
 #include "Tree.hxx"
 
 class Node;
+class Scalar;
 
 class Node {
  private:

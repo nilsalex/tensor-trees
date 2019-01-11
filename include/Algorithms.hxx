@@ -55,6 +55,8 @@ std::map<size_t, size_t> getVariableMap (std::unique_ptr<Tree<Node>> const & tre
 
 void substituteVariables (std::unique_ptr<Tree<Node>> & tree, std::map<size_t, size_t> const & subs_map);
 
+void substituteWithScalars (std::unique_ptr<Tree<Node>> & tree, std::map<size_t, Scalar> const & subs_map);
+
 std::map<size_t, mpq_class> evaluateTree (std::unique_ptr<Tree<Node>> const & tree, std::map<char, char> const & eval_map, mpq_class prefactor = 1);
 
 void shrinkForest (Forest<Node> & forest);

@@ -15,6 +15,8 @@ BOOST_CLASS_EXPORT(Scalar)
 
 Scalar::Scalar (size_t variable, mpq_class const & fraction) : map(std::map<size_t, mpq_class>({{variable, fraction}})) { }
 
+Scalar::Scalar (std::map<size_t, mpq_class> const & map) : map(map) { }
+
 Scalar::Scalar (Scalar const & other) : map(other.map) { }
 
 namespace boost {
@@ -188,4 +190,22 @@ void Scalar::shiftVariables (int i) {
       });
 
   std::swap (map, map_new);
+}
+
+void Scalar::substituteWithScalars (std::map<size_t, Scalar> const & subs_map) {
+  auto new_scalar = std::make_unique<Scalar>();
+
+  std::for_each (map.cbegin(), map.cend(),
+      [&new_scalar,&subs_map] (auto const & p) {
+        auto search = subs_map.find(p.first);
+        if (search != subs_map.end()) {
+          Scalar copied = search->second;
+          copied.multiply (p.second);
+          new_scalar->addOther (&copied);
+        }
+      });
+
+  removeZeros();
+
+  std::swap (map, new_scalar->map);
 }
