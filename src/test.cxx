@@ -17,9 +17,11 @@
 #include "Indices.hxx"
 
 int main () {
-  std::string indices {"abcdefghijklmnpq"};
+  std::vector<std::vector<char>> islist {{'a', 'b', 'c', 'd'}, {'a', 'c', 'b', 'd'}};
 
-  auto tree = buildEpsilonEtaTree (indices);
+  auto tree = treeFromIndicesEta (islist);
+
+  std::cout << printTree (tree);
 
   return 0;
 }

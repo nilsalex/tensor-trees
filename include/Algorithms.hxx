@@ -37,6 +37,11 @@ void mergeTrees (std::unique_ptr<Tree<Node>> & dst, std::unique_ptr<Tree<Node>> 
 
 void canonicalizeTree (std::unique_ptr<Tree<Node>> & tree);
 
+std::vector<std::unique_ptr<Node>> branchFromIndicesEta (std::vector<char> const & is, size_t variable);
+
+std::unique_ptr<Tree<Node>> treeFromIndicesEta (std::vector<std::vector<char>> const & indices_vector);
+
+void insertBranch (std::unique_ptr<Tree<Node>> & dst, std::vector<std::unique_ptr<Node>> & branch, size_t const node_number = 0);
 void insertBranch (std::unique_ptr<Tree<Node>> & dst, std::vector<Node *> & branch, size_t const node_number = 0);
 
 void removeEmptyBranches (std::unique_ptr<Tree<Node>> & tree);

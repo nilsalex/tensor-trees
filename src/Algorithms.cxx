@@ -232,6 +232,42 @@ void canonicalizeTree (std::unique_ptr<Tree<Node>> & tree) {
   std::swap (ret, tree);
 }
 
+std::vector<std::unique_ptr<Node>> branchFromIndicesEta (std::vector<char> const & is, size_t variable) {
+  size_t s = is.size() / 2;
+
+  auto nodes = std::vector<std::unique_ptr<Node>>(s + 1);
+
+  for (size_t counter = 0; counter < s; ++counter) {
+    nodes.push_back(std::make_unique<Eta>(is[2*counter], is[2*counter+1]));
+  }
+
+  nodes.push_back(std::make_unique<Scalar>(variable, 1));
+
+  return nodes;
+}
+
+std::unique_ptr<Tree<Node>> treeFromIndicesEta (std::vector<std::vector<char>> const & indices_vector) {
+  auto tree = std::make_unique<Tree<Node>>();
+  size_t variable = 1;
+
+  std::for_each (indices_vector.cbegin(), indices_vector.cend(),
+      [&tree,&variable] (auto const & is) {
+        auto branch = branchFromIndicesEta (is, variable);
+        insertBranch (tree, branch);
+        ++variable;
+      });
+
+  return tree;
+}
+
+void insertBranch (std::unique_ptr<Tree<Node>> & dst, std::vector<std::unique_ptr<Node>> & branch, size_t const node_number) {
+  std::vector<Node *> branch_cpy (branch.size());
+
+  std::transform(branch.cbegin(), branch.cend(), branch_cpy.begin(),
+      [] (auto const & n) { return n.get(); });
+
+  insertBranch (dst, branch_cpy, node_number);
+}
 void insertBranch (std::unique_ptr<Tree<Node>> & dst, std::vector<Node *> & branch, size_t const node_number) {
   if (branch.size() == node_number) {
     return;
