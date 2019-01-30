@@ -16,5 +16,11 @@ int main (int argc, char * argv []) {
 //  std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   std::cout << printTree(tree) << std::endl;
 
+//  auto varset = getVariableSet(tree);
+
+//  std::cout << getVariableSet(tree).size() << std::endl;
+
+//  std::cout << *varset.begin() << " " << *(varset.end()--) << std::endl;
+
   return 0;
 }
