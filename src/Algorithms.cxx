@@ -525,7 +525,7 @@ void reduceNumerical (std::unique_ptr<Tree<Node>> & tree, std::function< void (s
       std::for_each(m.cbegin(), m.cend(),
         [&row_counter,&eval_res_mat] (auto const & p) {
           // print matrix
-          std::cout << "(" << row_counter + 1 << ", " << p.first << ", " << p.second << ")," << std::endl;
+          //std::cout << "(" << row_counter + 1 << ", " << p.first << ", " << p.second << ")," << std::endl;
           eval_res_mat.insert(std::make_pair(std::make_pair(row_counter, p.first), p.second));
         }); 
       ++row_counter; 
