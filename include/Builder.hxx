@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <vector>
 
 #include "Tree.hxx"
 
@@ -11,7 +12,7 @@ class EtaBuilder {
   EtaBuilder() : leaf_counter(0) {};
   EtaBuilder(size_t counter) : leaf_counter(counter) {};
 
-  std::unique_ptr<Tree<Node>> buildTree (std::string const & indices, Tree<Node> * parent = nullptr);
+  Tree * buildTree (std::string const & indices, Tree * parent = nullptr);
 
   size_t get_leaf_counter() const { return leaf_counter; };
 
@@ -28,7 +29,7 @@ class EpsilonBuilder {
   EpsilonBuilder() : leaf_counter(0) {};
   EpsilonBuilder(size_t counter) : leaf_counter(counter) {};
 
-  std::unique_ptr<Tree<Node>> buildTree (std::string const & indices, Tree<Node> * parent = nullptr);
+  Tree * buildTree (std::string const & indices, Tree * parent = nullptr);
 
   size_t get_leaf_counter() const { return leaf_counter; };
 
@@ -37,4 +38,4 @@ class EpsilonBuilder {
   ~EpsilonBuilder() = default;
 };
 
-std::unique_ptr<Tree<Node>> buildEpsilonEtaTree (std::string const & indices);
+Tree * buildEpsilonEtaTree (std::string const & indices);

@@ -1,4 +1,4 @@
-#include <algorithm>
+#include <vector>
 
 #include "Tree.hxx"
 #include "Tensor.hxx"
@@ -65,45 +65,43 @@ std::vector<std::string> EpsilonBuilder::pickEpsilon (std::string const & indice
   return ret;
 }
 
-std::unique_ptr<Tree<Node>> EtaBuilder::buildTree (std::string const & indices, Tree<Node> * parent) {
+Tree * EtaBuilder::buildTree (std::string const & indices, Tree * parent) {
   int order = indices.size();
   if (order == 0) {
-    auto tree = std::make_unique<Tree<Node>> ();
+    auto tree = new Tree (1);
     tree->parent = parent;
-    tree->forest = Forest<Node> (1);
-    tree->forest.back() = std::make_unique<Tree<Node>>(0);
-    tree->forest.back()->node = std::make_unique<Scalar>(++leaf_counter, 1);
-    tree->forest.back()->parent = tree.get();
+    tree->forest.back() = new Tree(0);
+    tree->forest.back()->node = static_cast<void *>(new int ((-1) * (++leaf_counter)));
+    tree->forest.back()->parent = tree;
     return tree;
   } else {
     auto strings = pickEta (indices);
-    auto tree = std::make_unique<Tree<Node>> ();
+    auto tree = new Tree (order - 1);
     tree->parent = parent;
-    tree->forest = Forest<Node> (order - 1);
     std::transform (strings.cbegin(), strings.cend(), tree->forest.begin(),
       [this,&tree] (auto const & str) {
-        auto subtree = buildTree (str.substr(eta_size), tree.get());
-        subtree->node = std::make_unique<Eta> (str[0], str[1]);
+        auto subtree = buildTree (str.substr(eta_size), tree);
+        subtree->node = static_cast<void *>(new int(1));//new Eta (str[0], str[1]);
         return subtree;
       });
     return tree;
   }
 }
 
-std::unique_ptr<Tree<Node>> EpsilonBuilder::buildTree (std::string const & indices, Tree<Node> * parent) {
+Tree * EpsilonBuilder::buildTree (std::string const & indices, Tree * parent) {
   int order = indices.size();
-  auto tree = std::make_unique<Tree<Node>> ();
+  int trees = (order * (order - 1) * (order - 2) * (order - 3)) / 24;
+  auto tree = new Tree (trees);
 
   if (order > 3) {
-  int trees = (order * (order - 1) * (order - 2) * (order - 3)) / 24;
   auto strings = pickEpsilon (indices);
   tree->parent = parent;
-  tree->forest = Forest<Node> (trees);
+  tree->forest = Forest (trees);
   std::transform (strings.cbegin(), strings.cend(), tree->forest.begin(),
     [this,&tree] (auto const & str) {
       EtaBuilder etaBuilder (leaf_counter);
-      auto subtree = etaBuilder.buildTree (str.substr(epsilon_size), tree.get());
-      subtree->node = std::make_unique<Epsilon> (str[0], str[1], str[2], str[3]);
+      auto subtree = etaBuilder.buildTree (str.substr(epsilon_size), tree);
+      subtree->node = static_cast<void *>(new int(2));//new Epsilon (str[0], str[1], str[2], str[3]);
       leaf_counter = etaBuilder.get_leaf_counter();
       return subtree;
     });
@@ -111,8 +109,8 @@ std::unique_ptr<Tree<Node>> EpsilonBuilder::buildTree (std::string const & indic
   return tree;
 }
 
-std::unique_ptr<Tree<Node>> buildEpsilonEtaTree (std::string const & indices) {
-  auto ret = std::make_unique<Tree<Node>>();
+Tree * buildEpsilonEtaTree (std::string const & indices) {
+  auto ret = new Tree (0);
 
   EpsilonBuilder epsilonBuilder;
   auto epsilonTree = epsilonBuilder.buildTree(indices);
@@ -120,18 +118,17 @@ std::unique_ptr<Tree<Node>> buildEpsilonEtaTree (std::string const & indices) {
   EtaBuilder etaBuilder(epsilonBuilder.get_leaf_counter());
   auto etaTree = etaBuilder.buildTree(indices);
 
-  ret->forest.reserve(etaTree->forest.size() + epsilonTree->forest.size());
+  ret->forest.reserve(epsilonBuilder.get_leaf_counter() + etaBuilder.get_leaf_counter());
+
   std::for_each(epsilonTree->forest.begin(), epsilonTree->forest.end(),
     [&ret] (auto & t) {
-      t->parent = ret.get();
-      ret->forest.push_back(std::make_unique<Tree<Node>>());
-      ret->forest.back().swap(t);
+      t->parent = ret;
+      ret->forest.push_back(t);
     });
   std::for_each(etaTree->forest.begin(), etaTree->forest.end(),
     [&ret] (auto & t) {
-      t->parent = ret.get();
-      ret->forest.push_back(std::make_unique<Tree<Node>>());
-      ret->forest.back().swap(t);
+      t->parent = ret;
+      ret->forest.push_back(t);
     });
 
   return ret;
